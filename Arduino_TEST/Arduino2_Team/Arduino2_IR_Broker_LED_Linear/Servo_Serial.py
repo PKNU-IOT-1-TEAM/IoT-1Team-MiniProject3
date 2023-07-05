@@ -20,6 +20,8 @@ while True:
             json_data = {
                 "AD2_RCV_CGuard" : AD2_RCV_CGuard
             }
+            json_output = json.dumps(json_data)
+            print(json_output)
         except json.JSONDecodeError:
             print("Invaild Json Data : ", json_str)
     elif user_input == '-1':
@@ -33,10 +35,10 @@ while True:
             json_data = {
                 "AD2_RCV_CGuard" : AD2_RCV_CGuard
             }
+            json_output = json.dumps(json_data)
+            print(json_output)  
         except json.JSONDecodeError:
             print("Invaild Json Data : ", json_str)
     else:
         print("Invalid input. Please enter '1' or '0'.")
 
-    input_s = serialFromARdunio.readline().decode()
-    print(input_s)
