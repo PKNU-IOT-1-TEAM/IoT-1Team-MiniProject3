@@ -2,6 +2,8 @@ int motorPin1 = 6;
 int motorPin2 = 5;
 int waterPump1 =11;
 int waterPump2 =10;
+int TRIG = 9;
+int ECHO = 8;
 int dir = 2;
 void setup() {
   // put your setup code here, to run once:
@@ -10,17 +12,27 @@ void setup() {
   pinMode(motorPin2,OUTPUT);
   pinMode(waterPump1,OUTPUT);
   pinMode(waterPump2,OUTPUT);
+  pinMode(TRIG,OUTPUT);
+  pinMode(ECHO,INPUT);
   pinMode(dir,OUTPUT);
   digitalWrite(dir,HIGH);
   digitalWrite(motorPin1,LOW);
   digitalWrite(motorPin2,LOW);
   digitalWrite(waterPump1,LOW);
   digitalWrite(waterPump2,LOW);
-  Serial.println("DC motor test");
+  digitalWrite(TRIG,LOW);
+  printf("DC motor test");
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
+  float duration, distance;
+  digitalWrite(TRIG,HIGH);
+  delayMicroseconds(10);
+  digitalWrite(TRIG,LOW);
+
+  duration = pulseIn(ECHO,HIGH);
+  distance = duration * 17/1000;
+  
   if(Serial.available()){
     char receivedChar = Serial.read();
     digitalWrite(motorPin1,LOW);
@@ -33,7 +45,7 @@ void loop() {
       digitalWrite(motorPin2,LOW);
       digitalWrite(waterPump1,HIGH);
       digitalWrite(waterPump2,LOW);
-      delay(2000);    
+      //delay(2000);    
     }
     else if(receivedChar == '0'){
       printf("Backward");
@@ -41,7 +53,7 @@ void loop() {
       digitalWrite(motorPin2,HIGH);
       digitalWrite(waterPump1,LOW);
       digitalWrite(waterPump2,HIGH);
-      delay(2000);    
+      //delay(2000);    
     }
     else if(receivedChar == '2')
     {
@@ -50,15 +62,17 @@ void loop() {
       digitalWrite(motorPin2,LOW);
       digitalWrite(waterPump1,LOW);
       digitalWrite(waterPump2,LOW);
-      delay(2000);
+      //delay(2000);
     }
   }
-  if(digitalRead(motorPin2) && digitalRead(waterPump1) ==LOW){
-    Serial.println('0');
+  delay(1000);
+  Serial.print(distance);
+  if(distance > 25 || distance < 5){
+    Serial.println("정지");
   }
   else
   {
-    Serial.println('1');
+    Serial.println("동작중");
   }
   delay(1000);
 }
