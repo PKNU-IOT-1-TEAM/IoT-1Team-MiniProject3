@@ -38,4 +38,6 @@ void loop() {
   
   serializeJson(doc, Serial);
   Serial.println("");
+
+  delay(10000);
 }

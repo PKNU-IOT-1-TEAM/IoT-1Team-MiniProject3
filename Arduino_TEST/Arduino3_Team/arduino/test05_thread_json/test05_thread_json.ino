@@ -68,8 +68,8 @@ void loop()
     doc["AD3_RCV_WGuard_Wave"] = "Backward completed";
   }
   serializeJson(doc,Serial);
+  Serial.println("");
   temp = distance;
-  delay(1000);
 }
 
 void forwardMotion()
