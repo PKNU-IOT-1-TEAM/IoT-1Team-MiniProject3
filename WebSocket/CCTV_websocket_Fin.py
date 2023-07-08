@@ -11,9 +11,9 @@ from http import server
 from threading import Condition
 
 from flask import Flask, render_template, Response
-from picamera2 import PiCamera
+from picamera2 import Picamera2
 from picamera2.encoders import JpegEncoder
-from picamera2.outputs import PiCameraMJPEGOutput
+from picamera2.outputs import FileOutput
 from flask_socketio import SocketIO
 
 app = Flask(__name__)
@@ -120,10 +120,10 @@ def gen():
 
 
 if __name__ == '__main__':
-    picamera = PiCamera()
+    picamera = Picamera2()
     picamera.resolution = (640, 480)
     output = StreamingOutput()
-    picamera.start_recording(JpegEncoder(), PiCameraMJPEGOutput(output))
+    picamera.start_recording(JpegEncoder(), FileOutput(output))
 
     try:
         address = ('', 8000)
