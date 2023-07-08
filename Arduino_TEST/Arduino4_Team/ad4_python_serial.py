@@ -1,7 +1,7 @@
 import serial
 import json
 
-port = "/dev/ttyACM0"
+port = "/dev/ttyAMA3"
 ser = serial.Serial(port, 9600)    
 
 while True :

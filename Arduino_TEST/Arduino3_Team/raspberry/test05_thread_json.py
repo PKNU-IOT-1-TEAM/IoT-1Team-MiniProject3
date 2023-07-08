@@ -3,7 +3,7 @@ import serial
 import json
 
 # 시리얼 통신 관련 설정
-serial_port = "/dev/ttyACM0"    # 시리얼 포트
+serial_port = "/dev/ttyAMA2"    # 시리얼 포트
 ser = serial.Serial(serial_port, 9600) # 시리얼 객체 생성
 
 # 시리얼 값을 읽어오는 함수
@@ -48,3 +48,5 @@ handle_input()
 
 # 쓰레드 종료 대기
 serial_thread.join()
+
+

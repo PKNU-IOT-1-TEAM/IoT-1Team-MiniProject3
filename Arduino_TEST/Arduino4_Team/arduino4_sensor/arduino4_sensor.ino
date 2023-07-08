@@ -35,14 +35,14 @@ void loop() {
   { 
     serializeJson(doc, Serial);
     Serial.println("");
-    delay(2000);
+    delay(10000);
     return;
   }
   if ( ! rfid.PICC_ReadCardSerial())
   {
     serializeJson(doc, Serial);
     Serial.println("");
-    delay(2000);
+    delay(10000);
     return;
   }
   cardNumber = "";
@@ -58,4 +58,5 @@ void loop() {
    
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
+  delay(10000);
 }

@@ -1,4 +1,5 @@
 #include <ArduinoJson.h>
+
 int motorPin1 = 6;  // 모터 정회전
 int motorPin2 = 5;  // 모터 역회전
 int waterPump1 =11; // 워터펌프 정회전
@@ -69,7 +70,6 @@ void loop()
   serializeJson(doc,Serial);
   Serial.println("");
   temp = distance;
-  delay(1000);
 }
 
 void forwardMotion()

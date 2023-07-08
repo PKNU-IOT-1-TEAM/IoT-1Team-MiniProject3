@@ -3,11 +3,11 @@ import time
 import json
 #port="/dev/ttyACM0"
 # 시리얼 포트
-port="/dev/ttyAMA0"
+port="/dev/ttyAMA1"
 # 시리얼 포트와 통신속도 설정
 serialFromARdunio = serial.Serial(port, 9600)
 
-def Get_Json(self):
+def Get_Json():
     try:
         json_str = serialFromARdunio.readline().decode()
         data = json.loads(json_str)
