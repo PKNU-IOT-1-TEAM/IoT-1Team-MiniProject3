@@ -4,7 +4,6 @@
 Servo MyServo;              // 서보모터 선언
 int pos = 190;                 // 모터 위치를 확인하기 위해 변수를 선언
 int Fan_In = 3;
-int Fan_Out = 5;
 int CGuard = 6;          // 모터 제어를 위해 6번핀(PWM) 으로 선언
 int CGuard_LED = 7;      // 서보모터 LED 핀 선언
 int Buzz = 8;             // 부저 핀 선언
