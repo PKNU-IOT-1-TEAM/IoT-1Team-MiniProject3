@@ -8,6 +8,17 @@ int TRIG = 9; // 초음파 센서 트리거
 int ECHO = 8; // 초음파 센서 에코
 int dir = 2;  // 릴레이 시그널 핀
 
+// 동작 상태
+enum MotorState
+{
+  IDLE, // 대기상태
+  FORWARD, // 전진 중
+  BACKWARD, // 후진 중
+  COMPLETED // 동작 완료
+};
+
+MotorState motorState = IDLE; // 초기 상태는 대기 상태로 설정
+
 void setup() {
   Serial.begin(9600);
   // 아두이노 핀 세팅
@@ -39,37 +50,33 @@ void loop()
     if (command == '1')
     {
       forwardMotion();  // 전진 명령 수행
+      motorState = FORWARD;
     }
     else if (command == '0')
     {
       backwardMotion(); // 후진 명령 수행  
+      motorState = BACKWARD;
+    } 
+  
+    // 초음파 센서로 거리 측정
+  if(motorState == FORWARD || motorState == BACKWARD)
+  {
+   
+    int distance = int(measureDistance());
+    doc["AD3_RCV_WGuard_Wave"] = distance;
+    String jsonStr;
+    serializeJson(doc,jsonStr);
+    Serial.println(jsonStr);
+
+    // 목표 거리에 도달하였는지 확인하여 동작 완료 상태로 변경
+    if(distance >= 20 || distance <= 10)
+      motorState = COMPLETED;
+      stopMotor();
+   
+     
     }
-  }
 
-  // 초음파 센서로 거리 측정
-  int distance = int(measureDistance());
-
-  // 이전에 측정한 거리와 비교하여 모터 동작 상태 판단
-  static int temp = 0;
-  if(distance > temp)
-  {
-    doc["AD3_RCV_WGuard_Wave"] = "Forward";
   }
-  else if(distance < temp)
-  {
-    doc["AD3_RCV_WGuard_Wave"] = "Backward";
-  }
-  else if (distance >= 15)
-  {
-    doc["AD3_RCV_WGuard_Wave"] = "Forward completed";
-  }
-  else if (distance < 5)
-  {
-    doc["AD3_RCV_WGuard_Wave"] = "Backward completed";
-  }
-  serializeJson(doc,Serial);
-  Serial.println("");
-  temp = distance;
 }
 
 void forwardMotion()

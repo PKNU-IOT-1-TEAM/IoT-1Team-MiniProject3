@@ -33,15 +33,17 @@ void loop() {
 
   if ( ! rfid.PICC_IsNewCardPresent())
   { 
-    serializeJson(doc, Serial);
-    Serial.println("");
+    String jsonStr; 
+    serializeJson(doc, jsonStr);
+    Serial.println(jsonStr);
     delay(10000);
     return;
   }
   if ( ! rfid.PICC_ReadCardSerial())
   {
-    serializeJson(doc, Serial);
-    Serial.println("");
+    String jsonStr; 
+    serializeJson(doc, jsonStr);
+    Serial.println(jsonStr);
     delay(10000);
     return;
   }
@@ -52,9 +54,10 @@ void loop() {
   }
 
   doc["NFC"] = cardNumber;
-  
-  serializeJson(doc, Serial);
-  Serial.println("");
+
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+  Serial.println(jsonStr);
    
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();

@@ -11,6 +11,8 @@ int Ras_Signal_Input = 9;   // 라즈베리파이 인풋 선언
 int AD2_RCV_CGuard = 10;  // MQTT에 보낼 Servo 신호
 int IR = 11;     // 차량 인식을 위한 IR 센서
 
+// DynamicJsonDocument doc(254);   // json값 전달할 객체 생성
+
 void setup() {
   Serial.begin(9600);             // 시리얼 통신 9600
   pinMode(CGuard_LED, OUTPUT);    // 서보 모터 LED 핀 출력으로 설정 
@@ -23,11 +25,10 @@ void setup() {
   MyServo.write(pos);
 }
 
-void loop() {  
   
+void loop() {  
   int AD2_CGuard = 0;
   int Val = digitalRead(IR);
-  DynamicJsonDocument doc(254);   // json값 전달할 객체 생성
   digitalWrite(Fan_In, HIGH);
 
   if(Serial.available() > 0){
@@ -47,9 +48,9 @@ void loop() {
         delay(10);
       }
     }
-    doc["AD2_RCV_CGuard"] = int(pos);
-    serializeJson(doc, Serial);
-    Serial.println("");
+//    doc["AD2_RCV_CGuard"] = int(pos);
+//    serializeJson(doc, Serial);
+//    Serial.println("");
     delay(1000);
     noTone(Buzz);
   }
@@ -65,10 +66,10 @@ void loop() {
         delay(10);
       }
     }
-    doc["AD2_RCV_CGuard"] = int(pos);   
-    serializeJson(doc, Serial);
-    Serial.println("");
-    delay(1000);
+//    doc["AD2_RCV_CGuard"] = int(pos);
+//    String jsonStr; 
+//    Serial.println(jsonStr);
+//    delay(1000);
     noTone(Buzz);
   }
 }

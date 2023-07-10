@@ -9,7 +9,7 @@ ser = serial.Serial(serial_port, 9600) # 시리얼 객체 생성
 # 시리얼 값을 읽어오는 함수
 def read_serial():  # 초음파 센서 거리 읽음
     global ser
-    while True:
+    while True: 
         if ser.readable():
             json_string = ser.readline().decode('utf-8').rstrip()
             try:

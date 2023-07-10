@@ -6,6 +6,8 @@ DFRobot_DHT11 DHT;
 int AD1_IR_out = 5;
 int AD1_LED = 10;
 
+DynamicJsonDocument doc(128);
+
 void setup() {
   
   pinMode(AD1_LED, OUTPUT);  // LED_BUILTIN
@@ -14,9 +16,6 @@ void setup() {
 }
 
 void loop() {
-
-  DynamicJsonDocument doc(128);
-  
   int state = digitalRead(AD1_IR_out);
   
   DHT.read(AD1_HUM);
@@ -32,12 +31,13 @@ void loop() {
     digitalWrite(AD1_LED, HIGH); // LED를 끕니다.
   }
 
-  doc["IR_Sensor"]= String (state);
-  doc["Temperature"] = String (DHT.temperature);
-  doc["Humidity"] = String (DHT.humidity);
-  
-  serializeJson(doc, Serial);
-  Serial.println("");
+  doc["IR_Sensor"]= state;
+  doc["Temperature"] = DHT.temperature;
+  doc["Humidity"] = DHT.humidity;
+
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+  Serial.println(jsonStr);
 
   delay(10000);
 }
