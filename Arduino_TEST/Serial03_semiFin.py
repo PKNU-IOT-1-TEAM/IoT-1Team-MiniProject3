@@ -13,12 +13,38 @@ arduino4  = serial.Serial('/dev/ttyAMA3', 9600, timeout=1)
 original_result = {'IR_Sensor':None, 'Temperature':None, 'Humidity':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'NFC': None, 'WL_CNNT':None, 'WL_NCNNT':None}
 is_send_mqtt = False
 
-client = mqtt.Client(client_id='TEAM_ONE')
-client.connect('210.119.12.83', 1883)
-if client.is_connected:
-    print('MQTT 연결성공!')
-else:
-    print('MQTT 연결실패!')
+topic1='TEAM_ONE/parking/data/'
+topic2='TEAM_ONE/parking/s_data/'
+broker='210.119.12.83'
+port=1883
+
+def on_connect(client, userdata, flags, rc):
+    print("MQTT 연결성공")
+    print("Connected with result code: ", str(rc))
+    client.subscribe(topic2)
+    print("subscribing to topic : "+topic2)
+
+def on_message(client, userdata, message):
+    print("Data requested "+str(message.payload))
+
+def main():
+    print("WAIT for max: ", 2)
+    while True:
+        time.sleep(1)
+        client.publish(topic1,"dfdfd")
+
+### MQTT ###
+client = mqtt.Client('TEAM_ONE')
+client.connect(broker, port)
+client.on_connect = on_connect
+
+#client.on_disconnect = on_disconnect
+def subscribing():
+    client.on_message = on_message
+    client.loop_forever()
+
+sub=threading.Thread(target=subscribing)
+# pub=threading.Thread(target=main)
 
 def AD1_Thread():
     global original_result, is_send_mqtt, client
@@ -154,6 +180,7 @@ def AD4_Thread():
             except json.JSONDecodeError:
                 print("Invalid Json Data_4: ", json_str)
 
+
 arduino1_Thread = threading.Thread(target=AD1_Thread)
 arduino2_Thread = threading.Thread(target=AD2_Thread)
 arduino3_Thread = threading.Thread(target=AD3_Thread)
@@ -164,7 +191,10 @@ arduino2_Thread.start()
 arduino3_Thread.start()
 arduino4_Thread.start()
 
+sub.start()
+
 arduino1_Thread.join()
 arduino2_Thread.join()
 arduino3_Thread.join()
 arduino4_Thread.join()
+
