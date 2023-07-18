@@ -1,4 +1,3 @@
-//#include <DFRobot_DHT11.h>
 #include <ArduinoJson.h>
 #include <DHT.h>
 #include <pm2008_i2c.h>
@@ -50,7 +49,6 @@ void loop() {
 
   // Check if any reads failed and exit early (to try again).
   if (isnan(h) || isnan(t) || isnan(f)) {
-    Serial.println(F("Failed to read from DHT sensor!"));
     return;
   }
 
@@ -59,45 +57,9 @@ void loop() {
   // Compute heat index in Celsius (isFahreheit = false)
   float hic = dht.computeHeatIndex(t, h, false);
 
-  Serial.print(F("Humidity: "));
-  Serial.print(h);
-  Serial.print(F("%  Temperature: "));
-  Serial.print(t);
-  Serial.print(F("°C "));
-  Serial.print(f);
-  Serial.print(F("°F  Heat index: "));
-  Serial.print(hic);
-  Serial.print(F("°C "));
-  Serial.print(hif);
-  Serial.println(F("°F"));
-
   // 센서
   uint8_t ret = pm2008_i2c.read();
   if (ret == 0) {
-    Serial.print("PM 1.0 (GRIMM) : ");
-    Serial.println(pm2008_i2c.pm1p0_grimm);
-    Serial.print("PM 2.5 (GRIMM) : : ");
-    Serial.println(pm2008_i2c.pm2p5_grimm);
-    Serial.print("PM 10 (GRIMM) : : ");
-    Serial.println(pm2008_i2c.pm10_grimm);
-    Serial.print("PM 1.0 (TSI) : ");
-    Serial.println(pm2008_i2c.pm1p0_tsi);
-    Serial.print("PM 2.5 (TSI) : : ");
-    Serial.println(pm2008_i2c.pm2p5_tsi);
-    Serial.print("PM 10 (TSI) : : ");
-    Serial.println(pm2008_i2c.pm10_tsi);
-    Serial.print("Number of 0.3 um : ");
-    Serial.println(pm2008_i2c.number_of_0p3_um);
-    Serial.print("Number of 0.5 um : ");
-    Serial.println(pm2008_i2c.number_of_0p5_um);
-    Serial.print("Number of 1 um : ");
-    Serial.println(pm2008_i2c.number_of_1_um);
-    Serial.print("Number of 2.5 um : ");
-    Serial.println(pm2008_i2c.number_of_2p5_um);
-    Serial.print("Number of 5 um : ");
-    Serial.println(pm2008_i2c.number_of_5_um);
-    Serial.print("Number of 10 um : ");
-    Serial.println(pm2008_i2c.number_of_10_um);
   }
 
   int state = digitalRead(AD1_IR_out);
@@ -115,53 +77,18 @@ void loop() {
   doc["IR_Sensor"] = state;
   doc["Temperature"] = t;
   doc["Humidity"] = h;
-
-  String jsonStr;
-  serializeJson(doc, jsonStr);
-  Serial.println(jsonStr);
-
-  delay(10000);
-}
-
-
-//
-
-#include <DFRobot_DHT11.h>
-#include <ArduinoJson.h>
-DFRobot_DHT11 DHT;
-#define AD1_HUM 11
-
-int AD1_IR_out = 5;
-int AD1_LED = 10;
-
-DynamicJsonDocument doc(128);
-
-void setup() {
-  
-  pinMode(AD1_LED, OUTPUT);  // LED_BUILTIN
-  pinMode(AD1_IR_out, INPUT);
-  Serial.begin(9600);
-}
-
-void loop() {
-  int state = digitalRead(AD1_IR_out);
-  
-  DHT.read(AD1_HUM);
-  
-  if (state == LOW) 
-  {
-    digitalWrite(AD1_IR_out, HIGH);
-    digitalWrite(AD1_LED, LOW); // LED를 켭니다.
-  } 
-  else 
-  {
-    digitalWrite(AD1_IR_out, LOW);
-    digitalWrite(AD1_LED, HIGH); // LED를 끕니다.
-  }
-
-  doc["IR_Sensor"]= state;
-  doc["Temperature"] = DHT.temperature;
-  doc["Humidity"] = DHT.humidity;
+  doc["PM_1.0_GRIMM"] = pm2008_i2c.pm1p0_grimm;
+  doc["PM_2.5_GRIMM"] = pm2008_i2c.pm2p5_grimm;
+  doc["PM_10_GRIMM"] = pm2008_i2c.pm10_grimm;
+  doc["PM_1.0_TSI"] = pm2008_i2c.pm1p0_tsi;
+  doc["PM_2.5_TSI"] = pm2008_i2c.pm2p5_tsi;
+  doc["PM_10_TSI"] = pm2008_i2c.pm10_tsi;
+  doc["Number_of_0.3_um"] = pm2008_i2c.number_of_0p3_um;
+  doc["Number_of_0.5_um"] = pm2008_i2c.number_of_0p5_um;
+  doc["Number_of_1_um"] = pm2008_i2c.number_of_1_um;
+  doc["Number_of_2.5_um"] = pm2008_i2c.number_of_2p5_um;
+  doc["Number_of_5_um"] = pm2008_i2c.number_of_5_um;
+  doc["Number_of_10_um"] = pm2008_i2c.number_of_10_um;
 
   String jsonStr;
   serializeJson(doc, jsonStr);
