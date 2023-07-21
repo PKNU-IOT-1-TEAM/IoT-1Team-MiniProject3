@@ -4,7 +4,7 @@ import json
 import datetime as dt
 import paho.mqtt.client as mqtt
 
-
+# 출판(보내기)
 class publisher(Thread):
     def __init__(self):
         Thread.__init__(self)   # 스레드 초기화
@@ -28,7 +28,8 @@ class publisher(Thread):
         print(f'Data published #{self.count}')
         self.count += 1
         Timer(2.0, self.publish_data_auto).start()
-
+        
+# 구독(받아오기)
 class subscriber(Thread):
     def __init__(self):
         Thread.__init__(self)
