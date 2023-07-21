@@ -10,7 +10,10 @@ arduino2  = serial.Serial('/dev/ttyAMA1', 9600, timeout=1)
 arduino3  = serial.Serial('/dev/ttyAMA2', 9600, timeout=1)
 arduino4  = serial.Serial('/dev/ttyAMA3', 9600, timeout=1)
 
-original_result = {'IR_Sensor':None, 'Temperature':None, 'Humidity':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'NFC': None, 'WL_CNNT':None, 'WL_NCNNT':None}
+AD2_CGuard = 0
+AD3_WGuard_Wave = 0
+
+original_result = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None, 'AD4_RCV_WL_NCNNT':None}
 is_send_mqtt = False
 
 topic1='TEAM_ONE/parking/data/'
@@ -25,7 +28,21 @@ def on_connect(client, userdata, flags, rc):
     print("subscribing to topic : "+topic2)
 
 def on_message(client, userdata, message):
-    print("Data requested "+str(message.payload))
+    json_str = message.payload.decode('utf-8')
+
+    data = json.loads(json_str)
+
+    if 'AD2' in data:
+        global AD2_CGuard 
+        AD2_CGuard = data["AD2"]    
+    
+    if 'AD3' in data:
+        global AD3_WGuard_Wave 
+        AD3_WGuard_Wave = data["AD3"]
+
+    
+    
+    print("Data : " + json_str)
 
 def main():
     print("WAIT for max: ", 2)
@@ -38,14 +55,11 @@ client = mqtt.Client('TEAM_ONE')
 client.connect(broker, port)
 client.on_connect = on_connect
 
-#client.on_disconnect = on_disconnect
 def subscribing():
     client.on_message = on_message
     client.loop_forever()
 
-
 sub=threading.Thread(target=subscribing)
-# pub=threading.Thread(target=main)
 
 def AD1_Thread():
     global original_result, is_send_mqtt, client
@@ -56,21 +70,19 @@ def AD1_Thread():
             try:
                 data = json.loads(json_str)
 
-                AD1_Ir = data["IR_Sensor"]
-                AD1_Temp = data["Temperature"]
-                AD1_Hum = data["Humidity"]
+                AD1_Ir = data["AD1_RCV_IR_Sensor"]
+                AD1_Temp = data["AD1_RCV_Temperature"]
+                AD1_Hum = data["AD1_RCV_Humidity"]
+                AD1_Dust = data["AD1_RCV_Dust"]
                 
                 if is_send_mqtt == False :
-                    original_result['IR_Sensor'] = AD1_Ir
-                    original_result['Temperature'] = AD1_Temp
-                    original_result['Humidity'] = AD1_Hum
+                    original_result['AD1_RCV_IR_Sensor'] = AD1_Ir
+                    original_result['AD1_RCV_Temperature'] = AD1_Temp
+                    original_result['AD1_RCV_Humidity'] = AD1_Hum
+                    original_result['AD1_RCV_Dust'] = AD1_Dust
 
                 json_data = json.dumps(original_result)
-                client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)
-                
-                # json_output = json.dumps(json_data)
-
-                # print(json_output)
+                client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)                
 
             except json.JSONDecodeError:
                 print("Invalid Json Data_1: ", json_str )
@@ -82,33 +94,24 @@ def AD2_Thread():
             json_str = arduino2.readline().decode()
             data = json.loads(json_str)
 
-            AD2_RCV_CGuard = data["AD2_RCV_CGuard"]
+            AD2_RCV_CGuard = data["AD2"]
             json_data = {
-                "AD2_RCV_CGuard" : AD2_RCV_CGuard
+                "AD2" : AD2_RCV_CGuard
             }
-
-
-            # json_output = json.dumps(json_data)
-            # print(json_output)
-
-            # if is_send_mqtt == False:
-                # original_result['AD2_RCV_CGuard'] = AD2_RCV_CGuard
 
         except json.JSONDecodeError:
             print("Invaild Json Data_2: ", json_str)
 
-    while True:
-        user_input = input("Enter '1' or '-1' : ")
-        if user_input == '1':
+    while True:        
+        global AD2_CGuard
+        if  AD2_CGuard == 1:
             arduino2.write(b'1')
             time.sleep(1)
             Get_Json()
-        elif user_input == '-1':
+        elif AD2_CGuard == -1:
             arduino2.write(b'-1')
             time.sleep(1)
             Get_Json()
-        else:
-            print("Invalid input. Please enter '1' or '0'.")
 
 def AD3_Thread():
     global original_result, is_send_mqtt, client
@@ -120,12 +123,7 @@ def AD3_Thread():
                 try:
                     data = json.loads(json_str)
                     # AD3 데이터 처리
-                    AD3_RCV_WGuard_Wave = data["AD3_RCV_WGuard_Wave"]
-                    # json_data = {
-                    #     "AD3_RCV_WGuard_Wave": AD3_RCV_WGuard_Wave
-                    # }
-                    # json_output = json.dumps(json_data)
-                    # print(json_output)
+                    AD3_RCV_WGuard_Wave = data["AD3_RCV_WGuard_Wave"]                    
                     if is_send_mqtt == False:
                         original_result['AD3_RCV_WGuard_Wave'] = AD3_RCV_WGuard_Wave
 
@@ -135,15 +133,13 @@ def AD3_Thread():
                     print("Invalid Json Data_3:", json_str)
 
     def hand_input():
+        global AD3_WGuard_Wave
         while True:
-            user_input = input("Enter a command: ")  # 사용자 입력 처리
-            if user_input == "1":
+            if AD3_WGuard_Wave == 1:
                 arduino3.write(b'1')
-            elif user_input == "0":
+            elif AD3_WGuard_Wave == 0:
                 arduino3.write(b'0')
-            else:
-                print("Invalid command")
-
+            
     # 중첩 스레드라서 지우면 안됌..!!!!
     serial_thread = threading.Thread(target=read_serial)
     serial_thread.start()
@@ -159,21 +155,14 @@ def AD4_Thread():
 
             try:
                 data = json.loads(json_str)
-                AD4_Nfc = data["NFC"]
-                AD4_WL_Cnnt = data["WL_CNNT"]
-                AD4_WL_NCnnt = data["WL_NCNNT"]
-
-                # json_data = {
-                #     "NFC" : AD4_NFC,
-                #     "WL_CNNT" : AD4_WL_CNNT,
-                #     "WL_NCNNT" : AD4_WL_NCNNT
-                # }
-                # print(json_output)
+                AD4_Nfc = data["AD4_RCV_NFC"]
+                AD4_WL_Cnnt = data["AD4_RCV_WL_CNNT"]
+                AD4_WL_NCnnt = data["AD4_RCV_WL_NCNNT"]
 
                 if is_send_mqtt == False :
-                    original_result['NFC'] = AD4_Nfc
-                    original_result['WL_CNNT'] = AD4_WL_Cnnt
-                    original_result['WL_NCNNT'] = AD4_WL_NCnnt
+                    original_result['AD4_RCV_NFC'] = AD4_Nfc
+                    original_result['AD4_RCV_WL_CNNT'] = AD4_WL_Cnnt
+                    original_result['AD4_RCV_WL_NCNNT'] = AD4_WL_NCnnt
 
                 json_data = json.dumps(original_result)
                 client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)
@@ -198,4 +187,3 @@ arduino1_Thread.join()
 arduino2_Thread.join()
 arduino3_Thread.join()
 arduino4_Thread.join()
-

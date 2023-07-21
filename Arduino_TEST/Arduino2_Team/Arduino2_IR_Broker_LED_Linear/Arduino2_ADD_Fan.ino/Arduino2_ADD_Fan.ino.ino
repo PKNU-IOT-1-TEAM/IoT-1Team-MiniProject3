@@ -56,7 +56,7 @@ void loop() {
   }
   else if(Val == HIGH && AD2_CGuard == -1)
   {
-    digitalWrite(CGuard_LED, 1);
+    digitalWrite(CGuard_LED, 0);
     tone(Buzz, 1200);
     for (pos = 90; pos <= 190; pos += 10)    // 위에 변수를 선언한 pos는 0, 180도보다 작다면 , 1도씩 더하고
     {
@@ -69,7 +69,7 @@ void loop() {
 //    doc["AD2_RCV_CGuard"] = int(pos);
 //    String jsonStr; 
 //    Serial.println(jsonStr);
-//    delay(1000);
+    delay(1000);
     noTone(Buzz);
   }
 }
