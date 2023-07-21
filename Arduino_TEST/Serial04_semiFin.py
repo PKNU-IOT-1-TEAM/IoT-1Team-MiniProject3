@@ -10,6 +10,10 @@ arduino2  = serial.Serial('/dev/ttyAMA1', 9600, timeout=1)
 arduino3  = serial.Serial('/dev/ttyAMA2', 9600, timeout=1)
 arduino4  = serial.Serial('/dev/ttyAMA3', 9600, timeout=1)
 
+AD3_WGuard_Wave = 0
+AD2_CGuard = 0
+
+
 original_result = {'IR_Sensor':None, 'Temperature':None, 'Humidity':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'NFC': None, 'WL_CNNT':None, 'WL_NCNNT':None}
 is_send_mqtt = False
 
@@ -26,6 +30,18 @@ def on_connect(client, userdata, flags, rc):
 
 def on_message(client, userdata, message):
     print("Data requested "+str(message.payload))
+
+    # str(message.payload) = byte_message
+
+    json_str = message.payload.decode('utf-8')
+
+    data = json.loads(json_str)
+    global AD3_WGuard_Wave 
+    AD3_WGuard_Wave = data["AD3_WGuard_Wave"]
+    global AD2_CGuard 
+    AD2_CGuard = data["AD2_CGuard"]    
+    # arduino3.write(b'AD3_WGuard_Wave')
+    # arduino2.write(b'AD2_CGuard')
 
 def main():
     print("WAIT for max: ", 2)
@@ -98,17 +114,18 @@ def AD2_Thread():
             print("Invaild Json Data_2: ", json_str)
 
     while True:
-        user_input = input("Enter '1' or '-1' : ")
-        if user_input == '1':
+        # user_input = input("Enter '1' or '-1' : ")
+        global AD2_CGuard
+        if  AD2_CGuard == '1':
             arduino2.write(b'1')
             time.sleep(1)
             Get_Json()
-        elif user_input == '-1':
+        elif AD2_CGuard == '-1':
             arduino2.write(b'-1')
             time.sleep(1)
             Get_Json()
-        else:
-            print("Invalid input. Please enter '1' or '0'.")
+        # else:
+        #     print("Invalid input. Please enter '1' or '0'.")
 
 def AD3_Thread():
     global original_result, is_send_mqtt, client
@@ -135,14 +152,16 @@ def AD3_Thread():
                     print("Invalid Json Data_3:", json_str)
 
     def hand_input():
+        global AD3_WGuard_Wave
         while True:
-            user_input = input("Enter a command: ")  # 사용자 입력 처리
-            if user_input == "1":
+            # user_input = input("Enter a command: ")  # 사용자 입력 처리
+            
+            if AD3_WGuard_Wave == 1:
                 arduino3.write(b'1')
-            elif user_input == "0":
+            elif AD3_WGuard_Wave == 0:
                 arduino3.write(b'0')
-            else:
-                print("Invalid command")
+            # else:
+            #     print("Invalid command")
 
     # 중첩 스레드라서 지우면 안됌..!!!!
     serial_thread = threading.Thread(target=read_serial)
