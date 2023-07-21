@@ -27,9 +27,9 @@ void loop() {
   int nlevel = digitalRead(NCNT_WATER);
   String cardNumber = "None";
   
-  doc["NFC"] = cardNumber;
-  doc["WL_CNNT"] = clevel;
-  doc["WL_NCNNT"] = nlevel;
+  doc["AD4_RCV_NFC"] = cardNumber;
+  doc["AD4_RCV_WL_CNNT"] = clevel;
+  doc["AD4_RCV_WL_NCNNT"] = nlevel;
 
   if ( ! rfid.PICC_IsNewCardPresent())
   { 
@@ -53,7 +53,7 @@ void loop() {
     cardNumber += rfid.uid.uidByte[i];
   }
 
-  doc["NFC"] = cardNumber;
+  doc["AD4_RCV_NFC"] = cardNumber;
 
   String jsonStr;
   serializeJson(doc, jsonStr);
