@@ -6,6 +6,7 @@ using uPLibrary.Networking.M2Mqtt;
 using uPLibrary.Networking.M2Mqtt.Messages;
 using Newtonsoft.Json;
 using System.Text;
+using System.Windows.Markup;
 
 namespace WPF_APP_TEST
 {
@@ -23,17 +24,20 @@ namespace WPF_APP_TEST
         public MainWindow()
         {
             InitializeComponent();
-            
-        }
+			mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
+			mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
+			mqttClient.Connect(Guid.NewGuid().ToString());
+			mqttClient.Subscribe(new string[] { s_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+		}
         private void BtnSend_Click(object sender, RoutedEventArgs e)
         {
-            if (mqttClient == null)
-            {
-                mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
-                mqttClient.Connect(Guid.NewGuid().ToString());
-            }
+            //if (mqttClient == null)
+            //{
+            //mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
+            //mqttClient.Connect(Guid.NewGuid().ToString());
+            //}
 
-            var data = new { AD2_CGuard = -1, AD3_WGuard_Wave = 1};  // 전송할 데이터 json형식으로 생성
+            var data = new { AD1 = 0, AD2 = 0, AD3 = 1, AD4 = 0};  // 전송할 데이터 json형식으로 생성
             string json = JsonConvert.SerializeObject(data);
             
             mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
@@ -42,16 +46,13 @@ namespace WPF_APP_TEST
         private void BtnRead_Click(object sender, RoutedEventArgs e)
         {
 
-            if (mqttClient == null)
-            {
-                mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
-                mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
-                mqttClient.Connect(Guid.NewGuid().ToString());
-                mqttClient.Subscribe(new string[] { s_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            }
-
-
-            
+            //if (mqttClient == null)
+            //{
+            //    mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
+            //    mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
+            //    mqttClient.Connect(Guid.NewGuid().ToString());
+            //    mqttClient.Subscribe(new string[] { s_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
+            //}
         }
 
         private void MqttClient_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
@@ -62,19 +63,67 @@ namespace WPF_APP_TEST
             var data = JsonConvert.DeserializeObject<dynamic>(message);
 
             // Extract individual values from JSON data
-            int IR_Sensor = data.IR_Sensor;
-            int Temperature = data.Temperature;
-            int Humidity = data.Humidity;
+            int? AD1_RCV_IR_Sensor = data.AD1_RCV_IR_Sensor;
+            int? AD1_RCV_Temperature = data.AD1_RCV_Temperature;
+            int? AD1_RCV_Humidity = data.AD1_RCV_Humidity;
+            int? AD1_RCV_Dust = data.AD1_RCV_Dust;
             int? AD2_RCV_CGuard = data.AD2_RCV_CGuard;
             int? AD3_RCV_WGuard_Wave = data.AD3_RCV_WGuard_Wave;
-            string NFC = data.NFC;
-            int WL_CNNT = data.WL_CNNT;
-            int WL_NCNNT = data.WL_NCNNT;
+            string AD4_RCV_NFC = data.AD4_RCV_NFC;
+            int? AD4_RCV_WL_CNNT = data.AD4_RCV_WL_CNNT;
+            int? AD4_RCV_WL_NCNNT = data.AD4_RCV_WL_NCNNT;
 
-            // Update UI or perform other logic with the received data
-            Dispatcher.Invoke(() =>
+            if (AD1_RCV_IR_Sensor != 1)
             {
-                OutputText.Text = $"Received data: IR Sensor = {IR_Sensor}, Temperature = {Temperature}, Humidity = {Humidity}, AD2_RCV_CGuard = {AD2_RCV_CGuard}, AD3_RCV_WGuard_Wave = {AD3_RCV_WGuard_Wave}, NFC = {NFC}, WL_CNNT = {WL_CNNT}, WL_NCNNT = {WL_NCNNT}";
+				var Adata2 = new { AD2 = 1 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata2);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+            else
+            {
+				var Adata2 = new { AD2 = -1 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata2);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+
+
+
+            if (AD4_RCV_WL_CNNT < 400)
+            {
+                var Adata3 = new { AD3_CNNT = 0 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata3);
+
+                mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+            }
+            else if (AD4_RCV_WL_CNNT >= 400)
+            {
+				var Adata3 = new { AD3_CNNT = 1 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata3);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+            
+            if (AD4_RCV_WL_NCNNT == 1)
+            {
+				var Adata3 = new { AD3_NCNNT = 2 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata3);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			else if (AD4_RCV_WL_NCNNT == 0)
+			{
+				var Adata3 = new { AD3_NCNNT = 3 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata3);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+
+			// Update UI or perform other logic with the received data
+			Dispatcher.Invoke(() =>
+            {
+                OutputText.Text = $"AD1_RCV_IR Sensor = {AD1_RCV_IR_Sensor}, AD1_RCV_Temperature = {AD1_RCV_Temperature}, AD1_RCV_Humidity = {AD1_RCV_Humidity}, AD1_RCV_Dust = {AD1_RCV_Dust}, AD2_RCV_CGuard = {AD2_RCV_CGuard}, AD3_RCV_WGuard_Wave = {AD3_RCV_WGuard_Wave}, AD4_RCV_NFC = {AD4_RCV_NFC}, AD4_RCV_WL_CNNT = {AD4_RCV_WL_CNNT}, AD4_RCV_WL_NCNNT = {AD4_RCV_WL_NCNNT}";
             });
         }
 
