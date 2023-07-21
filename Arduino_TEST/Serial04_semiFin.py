@@ -36,10 +36,12 @@ def on_message(client, userdata, message):
         global AD2_CGuard 
         AD2_CGuard = data["AD2"]    
     
-    if 'AD3' in data:
-        global AD3_WGuard_Wave 
-        AD3_WGuard_Wave = data["AD3"]
-
+    global AD3_WGuard_Wave 
+    
+    if 'AD3_CNNT' in data:
+        AD3_WGuard_Wave = data["AD3_CNNT"]
+    elif 'AD3_NCNNT' in data:
+        AD3_WGuard_Wave = data["AD3_NCNNT"]
     
     
     print("Data : " + json_str)
@@ -135,11 +137,15 @@ def AD3_Thread():
     def hand_input():
         global AD3_WGuard_Wave
         while True:
-            if AD3_WGuard_Wave == 1:
-                arduino3.write(b'1')
-            elif AD3_WGuard_Wave == 0:
+            if AD3_WGuard_Wave == 0:
                 arduino3.write(b'0')
-            
+            elif AD3_WGuard_Wave == 1:
+                arduino3.write(b'1')
+            elif AD3_WGuard_Wave == 2:
+                arduino3.write(b'2')
+            elif AD3_WGuard_Wave == 3:
+                arduino3.write(b'3')
+
     # 중첩 스레드라서 지우면 안됌..!!!!
     serial_thread = threading.Thread(target=read_serial)
     serial_thread.start()
