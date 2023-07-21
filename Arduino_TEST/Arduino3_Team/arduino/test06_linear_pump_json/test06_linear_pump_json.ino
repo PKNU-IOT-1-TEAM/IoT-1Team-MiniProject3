@@ -60,7 +60,7 @@ void loop()
       digitalWrite(waterPump2,LOW);
     } 
     else if (command == '2')
-    {
+   
       forwardMotion();  // 전진 명령 수행
       motorState = FORWARD;
     }
