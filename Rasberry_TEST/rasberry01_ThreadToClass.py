@@ -26,6 +26,14 @@ class Publisher(Thread):
 
         # Publish 클라인언트 생성
         self.client = mqtt.Client(client_id=self.clientId)
+        # 호출함수 등록
+        self.client.on_connect = self.onConnect
+
+    def onConnect(self, mqttc, obj, flags, rc):
+        if rc == 0:
+            print("MQTT Publisher 연결 성공")
+        else:
+            print("MQTT Publisher 연결 실패, result code:", rc)
 
     def run(self):
         # mqtt_broker 연결
@@ -69,9 +77,12 @@ class Subscriber(Thread):
 
 
     def onConnect(self, mqttc, obj, flags, rc): # 연결 성공시 호출되는 콜백함수
-        print("MQTT Subscriber 연결 성공")
-        print("Connected with result code : ", str(rc))
-        self.client.subscribe(topic=self.topic)
+        if rc == 0:
+            print("MQTT Publisher 연결 성공")
+            self.client.subscribe(topic=self.topic)     # 구독
+        else:
+            print("MQTT Publisher 연결 실패, result code:", rc)
+            
 
     def onMessage(self, mqttc, obj, msg):   # 특정 토픽에서 메세지를 받았을때 호출되는 콜백함수
         rcv_msg = str(msg.payload.decode('utf-8'))
@@ -85,12 +96,14 @@ class Subscriber(Thread):
 
 # Serial arduino Thread
 class Arduino(Thread):
-    def __init__(self, arduino_port, sensor_queue):
+    def __init__(self, arduino_type, arduino_port, sensor_queue, command_queue):
         Thread.__init__(self)
+        self.arduino_type = arduino_type
         self.arduino = serial.Serial(arduino_port, 9600, timeout=1) # 시리얼 객체 생성
         self.sensor_queue = sensor_queue
-        self.is_running = False # ??? 무슨 변수지??
+        self.command_queue = sensor_queue
 
+    # 시리얼 통신 아두이노 센서 값 읽어오기
     def read_arduino_value(self):
         if self.arduino.in_waiting > 0:
             json_str = self.arduino.readline().decode('utf-8').rstrip() # 시리얼 한줄단위로 읽고 str형태로
@@ -101,6 +114,22 @@ class Arduino(Thread):
 
             except json.JSONDecodeError:
                 print("Invalid Json Data: ", json_str)
+
+    # 명령큐에서 명령 꺼내서 아두이노로 보내기
+    def write_arduino_value(self):
+        if not self.command_queue.empty():
+            commands = self.command_queue.get()
+            for command_name, command in commands.items():
+                if self.arduino_type in command_name:
+                    command_str = json.dumps({command_name: command})
+                    self.arduino.write(command_str.encode())
+
+    def run(self):
+        while True:
+            self.read_arduino_value()
+            self.write_arduino_value()
+            
+
 
 if __name__ == '__main__':
     # 센서 값을 담을 큐 생성
@@ -114,5 +143,24 @@ if __name__ == '__main__':
     # MQTT Subscriber 쓰레드 생성
     subscriber_thread = Subscriber(command_queue)
 
+    # 아두이노 1,2,3,4 쓰레드 생성
+    arduino1_thread = Arduino('AD1',AD1_PORT, sensor_queue, command_queue)
+    arduino2_thread = Arduino('AD2',AD2_PORT, sensor_queue, command_queue)
+    arduino3_thread = Arduino('AD3', AD3_PORT, sensor_queue, command_queue)
+    arduino4_thread = Arduino('AD4', AD4_PORT, sensor_queue, command_queue)
+
     # 쓰레드 시작
+    publisher_thread.start()
     subscriber_thread.start()
+    arduino1_thread.start()
+    arduino2_thread.start()
+    arduino3_thread.start()
+    arduino4_thread.start()
+
+    # 쓰레드 종료 대기
+    publisher_thread.join()
+    subscriber_thread.join()
+    arduino1_thread.join()
+    arduino2_thread.join()
+    arduino3_thread.join()
+    arduino4_thread.join()

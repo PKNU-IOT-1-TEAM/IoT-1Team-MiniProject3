@@ -4,9 +4,10 @@
 #include <ArduinoJson.h>
 
 // Pin define
-#define SS_PIN 10
-#define RST_PIN 9
-#define NCNT_WATER 5
+#define SS_PIN 10 // SDA
+#define RST_PIN 9  // RST
+// SCK 13, MOSI 11, MISO 12, IRQ 없음
+#define NCNT_WATER 5 // 비접촉 수위
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key; 
