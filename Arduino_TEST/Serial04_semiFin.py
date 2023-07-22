@@ -75,13 +75,12 @@ def AD1_Thread():
                 AD1_Ir = data["AD1_RCV_IR_Sensor"]
                 AD1_Temp = data["AD1_RCV_Temperature"]
                 AD1_Hum = data["AD1_RCV_Humidity"]
-                AD1_Dust = data["AD1_RCV_Dust"]
-                
+
+
                 if is_send_mqtt == False :
                     original_result['AD1_RCV_IR_Sensor'] = AD1_Ir
                     original_result['AD1_RCV_Temperature'] = AD1_Temp
                     original_result['AD1_RCV_Humidity'] = AD1_Hum
-                    original_result['AD1_RCV_Dust'] = AD1_Dust
 
                 json_data = json.dumps(original_result)
                 client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)                
