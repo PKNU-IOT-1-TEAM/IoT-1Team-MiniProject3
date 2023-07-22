@@ -141,7 +141,7 @@ if __name__ == '__main__':
     publisher_thread = Publisher(sensor_queue)
 
     # # MQTT Subscriber 쓰레드 생성
-    # subscriber_thread = Subscriber(command_queue)
+    subscriber_thread = Subscriber(command_queue)
 
     # 아두이노 1,2,3,4 쓰레드 생성
     arduino1_thread = Arduino('AD1',AD1_PORT, sensor_queue, command_queue)
@@ -151,7 +151,7 @@ if __name__ == '__main__':
 
     # 쓰레드 시작
     publisher_thread.start()
-    # subscriber_thread.start()
+    subscriber_thread.start()
     arduino1_thread.start()
     # arduino2_thread.start()
     # arduino3_thread.start()
@@ -159,7 +159,7 @@ if __name__ == '__main__':
 
     # 쓰레드 종료 대기
     publisher_thread.join()
-    # subscriber_thread.join()
+    subscriber_thread.join()
     arduino1_thread.join()
     # arduino2_thread.join()
     # arduino3_thread.join()
