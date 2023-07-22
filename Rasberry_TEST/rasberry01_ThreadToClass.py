@@ -5,7 +5,7 @@ import json
 import serial
 
 # Serial 통신 포트
-AD1_PORT='/dev/ttyS0'  
+AD1_PORT='/dev/ttyS0'
 AD2_PORT='/dev/ttyAMA1'
 AD3_PORT='/dev/ttyAMA2'
 AD4_PORT='/dev/ttyAMA3'
@@ -20,8 +20,8 @@ class Publisher(Thread):
 
         # MQTT 통신 변수
         self.broker = '210.119.12.83'
-        self.port = 1833
-        self.clientId = 'IoT_Team1_Rasberry_PUB' 
+        self.port = 1883
+        self.clientId = 'IoT_Team1_Rasberry_PUB'
         self.topic = 'TEAM_ONE/parking/Sensor_data/'
 
         # Publish 클라인언트 생성
@@ -37,7 +37,7 @@ class Publisher(Thread):
 
     def run(self):
         # mqtt_broker 연결
-        self.client.connect(self.broker, self.port) 
+        self.client.connect(self.broker, self.port)
         self.publish_data_auto()    # 자동 publish 함수
 
     def publish_data_auto(self):
@@ -64,7 +64,7 @@ class Subscriber(Thread):
 
         # MQTT 통신 변수
         self.broker = '210.119.12.83'
-        self.port = 1833
+        self.port = 1883
         self.clientId = 'IoT_Team1_Rasberry_SUB'
         self.topic = 'TEAM_ONE/parking/Control_data/'
 
@@ -82,7 +82,7 @@ class Subscriber(Thread):
             self.client.subscribe(topic=self.topic)     # 구독
         else:
             print("MQTT Publisher 연결 실패, result code:", rc)
-            
+
 
     def onMessage(self, mqttc, obj, msg):   # 특정 토픽에서 메세지를 받았을때 호출되는 콜백함수
         rcv_msg = str(msg.payload.decode('utf-8'))
@@ -91,7 +91,7 @@ class Subscriber(Thread):
         self.command_queue.put(data)
 
     def run(self):
-        self.client.connect(self.host, self.port)   # MQTT브로커 연결
+        self.client.connect(self.broker, self.port)   # MQTT브로커 연결
         self.client.loop_forever()  # MQTT브로커와 통신을 유지하며 메시지를 주고 받을 수 있도록 루프를 돌며 대기하는 기능
 
 # Serial arduino Thread
@@ -101,13 +101,13 @@ class Arduino(Thread):
         self.arduino_type = arduino_type
         self.arduino = serial.Serial(arduino_port, 9600, timeout=1) # 시리얼 객체 생성
         self.sensor_queue = sensor_queue
-        self.command_queue = sensor_queue
+        self.command_queue = command_queue
 
     # 시리얼 통신 아두이노 센서 값 읽어오기
     def read_arduino_value(self):
         if self.arduino.in_waiting > 0:
             json_str = self.arduino.readline().decode('utf-8').rstrip() # 시리얼 한줄단위로 읽고 str형태로
-            
+
             try:
                 data = json.loads(json_str) # json형식으로 파싱
                 self.sensor_queue.put(data)    # 센서 큐에 저장
@@ -128,7 +128,7 @@ class Arduino(Thread):
         while True:
             self.read_arduino_value()
             self.write_arduino_value()
-            
+
 
 
 if __name__ == '__main__':
@@ -140,27 +140,27 @@ if __name__ == '__main__':
     # MQTT Publisher 쓰레드 생성
     publisher_thread = Publisher(sensor_queue)
 
-    # MQTT Subscriber 쓰레드 생성
-    subscriber_thread = Subscriber(command_queue)
+    # # MQTT Subscriber 쓰레드 생성
+    # subscriber_thread = Subscriber(command_queue)
 
     # 아두이노 1,2,3,4 쓰레드 생성
     arduino1_thread = Arduino('AD1',AD1_PORT, sensor_queue, command_queue)
-    arduino2_thread = Arduino('AD2',AD2_PORT, sensor_queue, command_queue)
-    arduino3_thread = Arduino('AD3', AD3_PORT, sensor_queue, command_queue)
-    arduino4_thread = Arduino('AD4', AD4_PORT, sensor_queue, command_queue)
+    # arduino2_thread = Arduino('AD2',AD2_PORT, sensor_queue, command_queue)
+    # arduino3_thread = Arduino('AD3', AD3_PORT, sensor_queue, command_queue)
+    # arduino4_thread = Arduino('AD4', AD4_PORT, sensor_queue, command_queue)
 
     # 쓰레드 시작
     publisher_thread.start()
-    subscriber_thread.start()
+    # subscriber_thread.start()
     arduino1_thread.start()
-    arduino2_thread.start()
-    arduino3_thread.start()
-    arduino4_thread.start()
+    # arduino2_thread.start()
+    # arduino3_thread.start()
+    # arduino4_thread.start()
 
     # 쓰레드 종료 대기
     publisher_thread.join()
-    subscriber_thread.join()
+    # subscriber_thread.join()
     arduino1_thread.join()
-    arduino2_thread.join()
-    arduino3_thread.join()
-    arduino4_thread.join()
+    # arduino2_thread.join()
+    # arduino3_thread.join()
+    # arduino4_thread.join()
