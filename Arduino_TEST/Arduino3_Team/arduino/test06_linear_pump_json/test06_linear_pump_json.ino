@@ -60,17 +60,16 @@ void loop()
       digitalWrite(waterPump2,LOW);
     } 
     else if (command == '2')
-   
+    {   
       forwardMotion();  // 전진 명령 수행
       motorState = FORWARD;
     }
-    else if(command =='3')
+    else if (command =='3')
     {
-      
       backwardMotion(); // 후진 명령 수행  
       motorState = BACKWARD;
     }
-  
+  }
     // 초음파 센서로 거리 측정
   if(motorState == FORWARD || motorState == BACKWARD)
   {
@@ -83,10 +82,9 @@ void loop()
 
     // 목표 거리에 도달하였는지 확인하여 동작 완료 상태로 변경
     if(distance >= 20 || distance <= 10)
+    {
       motorState = COMPLETED;
       stopMotor();
-   
-     
     }
 
   }
