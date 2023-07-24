@@ -1,5 +1,6 @@
 from threading import Thread, Timer
 import paho.mqtt.client as mqtt
+import copy
 import queue
 import json
 import serial
@@ -102,10 +103,10 @@ class Subscriber(Thread):
 class Arduino(Thread):
     def __init__(self, arduino_type, arduino_port, sensor_queue, command_queue):
         Thread.__init__(self)
-        self.arduino_type = arduino_type
+        self.arduino_type = arduino_type    # 아두이노 1,2,3,4
         self.arduino = serial.Serial(arduino_port, 9600, timeout=1) # 시리얼 객체 생성
-        self.sensor_queue = sensor_queue
-        self.command_queue = command_queue
+        self.sensor_queue = sensor_queue    # 센서 큐 참조 복사
+        self.command_queue = command_queue  # 명령 큐 참조 복사
 
     # 시리얼 통신 아두이노 센서 값 읽어오기
     def read_arduino_value(self):
@@ -122,11 +123,13 @@ class Arduino(Thread):
     # 명령큐에서 명령 꺼내서 아두이노로 보내기
     def write_arduino_value(self):
         if not self.command_queue.empty():
-            commands = self.command_queue.get()
-            for command_name, command in commands.items():
-                if self.arduino_type in command_name:
-                    command_str = json.dumps({command_name: command})
-                    self.arduino.write(command_str.encode())
+            # 큐에 있는 첫 번째 명령을 가져와서 키와 값을 분리
+            command_data = self.command_queue.queue[0]
+            command_name, command_value = command_data.popitem()    
+            if self.arduino_type in command_name:   # 해당 아두이노의 명령이 맞으면
+                self.command_queue.get()    # 큐에서 데이터 꺼내기
+                command_str = json.dumps({command_name: command_value}) 
+                self.arduino.write(command_str.encode())    # 아두이노로 명령 보내기
 
     def run(self):
         while True:
