@@ -18,8 +18,8 @@ namespace WPF_APP_TEST
         private MqttClient mqttClient;
         private string brokerAddress = "127.0.0.1";      // MQTT BROKER IP
         private int brokerPort = 1883;
-        private string p_topic = "TEAM_ONE/parking/s_data/";            // 발행할 토픽
-        private string s_topic = "TEAM_ONE/parking/data/";            // 구독할 토픽
+        private string p_topic = "TEAM_ONE/parking/Control_data/";            // 발행할 토픽
+        private string s_topic = "TEAM_ONE/parking/Sensor_data/";            // 구독할 토픽
 
         public MainWindow()
         {
