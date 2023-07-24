@@ -92,7 +92,7 @@ class Subscriber(Thread):
     def onMessage(self, mqttc, obj, msg):   # 특정 토픽에서 메세지를 받았을때 호출되는 콜백함수
         rcv_msg = str(msg.payload.decode('utf-8'))
         data = json.loads(rcv_msg)
-
+        # 큐에 명령 저장
         self.command_queue.put(data)
 
     def run(self):
@@ -125,10 +125,10 @@ class Arduino(Thread):
         if not self.command_queue.empty():
             # 큐에 있는 첫 번째 명령을 가져와서 키와 값을 분리
             command_data = self.command_queue.queue[0]
-            command_name, command_value = command_data.popitem()    
+            command_name, command_value = command_data.popitem()
             if self.arduino_type in command_name:   # 해당 아두이노의 명령이 맞으면
                 self.command_queue.get()    # 큐에서 데이터 꺼내기
-                command_str = json.dumps({command_name: command_value}) 
+                command_str = json.dumps({command_name: command_value})
                 self.arduino.write(command_str.encode())    # 아두이노로 명령 보내기
 
     def run(self):

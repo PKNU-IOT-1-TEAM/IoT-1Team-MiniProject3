@@ -7,11 +7,10 @@ int Fan_In = 3;
 int CGuard = 6;          // 모터 제어를 위해 6번핀(PWM) 으로 선언
 int CGuard_LED = 7;      // 서보모터 LED 핀 선언
 int Buzz = 8;             // 부저 핀 선언
-int Ras_Signal_Input = 9;   // 라즈베리파이 인풋 선언
 int AD2_RCV_CGuard = 10;  // MQTT에 보낼 Servo 신호
 int IR = 11;     // 차량 인식을 위한 IR 센서
 
-// DynamicJsonDocument doc(254);   // json값 전달할 객체 생성
+DynamicJsonDocument doc(254);   // json값 전달할 객체 생성
 
 void setup() {
   Serial.begin(9600);             // 시리얼 통신 9600
@@ -38,7 +37,7 @@ void loop() {
   
   if (Val == LOW && AD2_CGuard == 1)
   {
-    digitalWrite(CGuard_LED, 1);     // LED ON
+    digitalWrite(CGuard_LED, 0);     // LED ON
     for (pos = 190; pos >= 90; pos -= 10)    // 위에 변수를 선언한 pos는 0, 180도보다 작다면 , 1도씩 더하고
     {
       if(pos == 90){
@@ -48,15 +47,14 @@ void loop() {
         delay(10);
       }
     }
-//    doc["AD2_RCV_CGuard"] = int(pos);
-//    serializeJson(doc, Serial);
-//    Serial.println("");
+    doc["AD2_RCV_CGuard"] = int(pos);
+    serializeJson(doc, Serial);
     delay(1000);
     noTone(Buzz);
   }
   else if(Val == HIGH && AD2_CGuard == -1)
   {
-    digitalWrite(CGuard_LED, 0);
+    digitalWrite(CGuard_LED, 1);
     tone(Buzz, 1200);
     for (pos = 90; pos <= 190; pos += 10)    // 위에 변수를 선언한 pos는 0, 180도보다 작다면 , 1도씩 더하고
     {
@@ -66,10 +64,14 @@ void loop() {
         delay(10);
       }
     }
-//    doc["AD2_RCV_CGuard"] = int(pos);
-//    String jsonStr; 
-//    Serial.println(jsonStr);
+    doc["AD2_RCV_CGuard"] = int(pos);
+    
+    serializeJson(doc, Serial);
     delay(1000);
     noTone(Buzz);
+  }
+  else
+  {
+    return 0;
   }
 }
