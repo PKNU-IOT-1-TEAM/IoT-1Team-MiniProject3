@@ -50,7 +50,7 @@ class Publisher(Thread):
         sensor_data = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust': None, # 아두이노1
                        'AD2_RCV_CGuard':None ,                                                                              # 아두이노2
                        'AD3_RCV_WGuard_Wave':None,                                                                          # 아두이노3
-                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None, 'AD4_RCV_WL_NCNNT':None}                                # 아두이노4
+                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None}                                                         # 아두이노4
         while True:
             while not self.sensor_queue.empty():   # 큐가 비워질때까지 루프
                 new_sensor_data = self.sensor_queue.get()    # 큐에서 하나 get

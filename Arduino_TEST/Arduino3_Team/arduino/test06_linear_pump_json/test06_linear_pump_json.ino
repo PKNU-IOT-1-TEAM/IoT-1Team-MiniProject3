@@ -8,7 +8,7 @@ int TRIG = 9; // 초음파 센서 트리거
 int ECHO = 8; // 초음파 센서 에코
 int dir = 2;  // 릴레이 시그널 핀
 
-// 동작 상태
+// 동작 상태 (리니어 모터)
 enum MotorState
 {
   IDLE, // 대기상태
