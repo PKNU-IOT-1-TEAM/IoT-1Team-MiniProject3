@@ -1,5 +1,6 @@
 from threading import Thread, Timer
 import paho.mqtt.client as mqtt
+import copy
 import queue
 import json
 import serial
@@ -10,6 +11,10 @@ AD2_PORT='/dev/ttyAMA1'
 AD3_PORT='/dev/ttyAMA2'
 AD4_PORT='/dev/ttyAMA3'
 
+# MQTT 통신 변수
+BROKER = '210.119.12.83'
+PORT=1883
+
 # MQTT publisher(보내기) Thread
 class Publisher(Thread):
     def __init__(self, sensor_queue): # 초기화
@@ -19,8 +24,8 @@ class Publisher(Thread):
         self.sensor_queue = sensor_queue  # 참조 복사   # 센서값 담는 큐
 
         # MQTT 통신 변수
-        self.broker = '210.119.12.83'
-        self.port = 1883
+        self.broker = BROKER
+        self.port = PORT
         self.clientId = 'IoT_Team1_Rasberry_PUB'
         self.topic = 'TEAM_ONE/parking/Sensor_data/'
 
@@ -45,7 +50,7 @@ class Publisher(Thread):
         sensor_data = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust': None, # 아두이노1
                        'AD2_RCV_CGuard':None ,                                                                              # 아두이노2
                        'AD3_RCV_WGuard_Wave':None,                                                                          # 아두이노3
-                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None, 'AD4_RCV_WL_NCNNT':None}                                # 아두이노4
+                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None}                                                         # 아두이노4
         while True:
             while not self.sensor_queue.empty():   # 큐가 비워질때까지 루프
                 new_sensor_data = self.sensor_queue.get()    # 큐에서 하나 get
@@ -63,8 +68,8 @@ class Subscriber(Thread):
         self.command_queue = command_queue  # 명령값을 담는 큐
 
         # MQTT 통신 변수
-        self.broker = '210.119.12.83'
-        self.port = 1883
+        self.broker = BROKER
+        self.port = PORT
         self.clientId = 'IoT_Team1_Rasberry_SUB'
         self.topic = 'TEAM_ONE/parking/Control_data/'
 
@@ -87,7 +92,7 @@ class Subscriber(Thread):
     def onMessage(self, mqttc, obj, msg):   # 특정 토픽에서 메세지를 받았을때 호출되는 콜백함수
         rcv_msg = str(msg.payload.decode('utf-8'))
         data = json.loads(rcv_msg)
-
+        # 큐에 명령 저장
         self.command_queue.put(data)
 
     def run(self):
@@ -98,10 +103,10 @@ class Subscriber(Thread):
 class Arduino(Thread):
     def __init__(self, arduino_type, arduino_port, sensor_queue, command_queue):
         Thread.__init__(self)
-        self.arduino_type = arduino_type
+        self.arduino_type = arduino_type    # 아두이노 1,2,3,4
         self.arduino = serial.Serial(arduino_port, 9600, timeout=1) # 시리얼 객체 생성
-        self.sensor_queue = sensor_queue
-        self.command_queue = command_queue
+        self.sensor_queue = sensor_queue    # 센서 큐 참조 복사
+        self.command_queue = command_queue  # 명령 큐 참조 복사
 
     # 시리얼 통신 아두이노 센서 값 읽어오기
     def read_arduino_value(self):
@@ -118,11 +123,13 @@ class Arduino(Thread):
     # 명령큐에서 명령 꺼내서 아두이노로 보내기
     def write_arduino_value(self):
         if not self.command_queue.empty():
-            commands = self.command_queue.get()
-            for command_name, command in commands.items():
-                if self.arduino_type in command_name:
-                    command_str = json.dumps({command_name: command})
-                    self.arduino.write(command_str.encode())
+            # 큐에 있는 첫 번째 명령을 가져와서 키와 값을 분리
+            command_data = self.command_queue.queue[0]
+            command_name, command_value = command_data.popitem()
+            if self.arduino_type in command_name:   # 해당 아두이노의 명령이 맞으면
+                self.command_queue.get()    # 큐에서 데이터 꺼내기
+                command_str = json.dumps({command_name: command_value})
+                self.arduino.write(command_str.encode())    # 아두이노로 명령 보내기
 
     def run(self):
         while True:
@@ -140,7 +147,7 @@ if __name__ == '__main__':
     # MQTT Publisher 쓰레드 생성
     publisher_thread = Publisher(sensor_queue)
 
-    # # MQTT Subscriber 쓰레드 생성
+    # MQTT Subscriber 쓰레드 생성
     subscriber_thread = Subscriber(command_queue)
 
     # 아두이노 1,2,3,4 쓰레드 생성

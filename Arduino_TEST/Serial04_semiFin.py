@@ -10,14 +10,15 @@ arduino2  = serial.Serial('/dev/ttyAMA1', 9600, timeout=1)
 arduino3  = serial.Serial('/dev/ttyAMA2', 9600, timeout=1)
 arduino4  = serial.Serial('/dev/ttyAMA3', 9600, timeout=1)
 
+AD1_LED = 0
 AD2_CGuard = 0
 AD3_WGuard_Wave = 0
 
 original_result = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None, 'AD4_RCV_WL_NCNNT':None}
 is_send_mqtt = False
 
-topic1='TEAM_ONE/parking/data/'
-topic2='TEAM_ONE/parking/s_data/'
+topic1='TEAM_ONE/parking/Control_data/'
+topic2='TEAM_ONE/parking/Sensor_data/'
 broker='210.119.12.83'
 port=1883
 
@@ -32,14 +33,20 @@ def on_message(client, userdata, message):
 
     data = json.loads(json_str)
 
+    if 'AD1' in data:
+        global AD1_LED
+        AD1_LED = data["AD1"]        
+
     if 'AD2' in data:
         global AD2_CGuard 
         AD2_CGuard = data["AD2"]    
     
-    if 'AD3' in data:
-        global AD3_WGuard_Wave 
-        AD3_WGuard_Wave = data["AD3"]
-
+    global AD3_WGuard_Wave 
+    
+    if 'AD3_CNNT' in data:
+        AD3_WGuard_Wave = data["AD3_CNNT"]
+    elif 'AD3_NCNNT' in data:
+        AD3_WGuard_Wave = data["AD3_NCNNT"]
     
     
     print("Data : " + json_str)
@@ -73,19 +80,24 @@ def AD1_Thread():
                 AD1_Ir = data["AD1_RCV_IR_Sensor"]
                 AD1_Temp = data["AD1_RCV_Temperature"]
                 AD1_Hum = data["AD1_RCV_Humidity"]
-                AD1_Dust = data["AD1_RCV_Dust"]
-                
+
+
                 if is_send_mqtt == False :
                     original_result['AD1_RCV_IR_Sensor'] = AD1_Ir
                     original_result['AD1_RCV_Temperature'] = AD1_Temp
                     original_result['AD1_RCV_Humidity'] = AD1_Hum
-                    original_result['AD1_RCV_Dust'] = AD1_Dust
 
                 json_data = json.dumps(original_result)
                 client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)                
 
             except json.JSONDecodeError:
                 print("Invalid Json Data_1: ", json_str )
+               
+        global AD1_LED
+        if AD1_LED == 1:
+            arduino1.write(b'1')
+        elif AD1_LED == 0:
+            arduino1.write(b'0')
 
 def AD2_Thread():
     global original_result, is_send_mqtt, client
@@ -135,11 +147,15 @@ def AD3_Thread():
     def hand_input():
         global AD3_WGuard_Wave
         while True:
-            if AD3_WGuard_Wave == 1:
-                arduino3.write(b'1')
-            elif AD3_WGuard_Wave == 0:
+            if AD3_WGuard_Wave == 0:
                 arduino3.write(b'0')
-            
+            elif AD3_WGuard_Wave == 1:
+                arduino3.write(b'1')
+            elif AD3_WGuard_Wave == 2:
+                arduino3.write(b'2')
+            elif AD3_WGuard_Wave == 3:
+                arduino3.write(b'3')
+
     # 중첩 스레드라서 지우면 안됌..!!!!
     serial_thread = threading.Thread(target=read_serial)
     serial_thread.start()

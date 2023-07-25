@@ -18,7 +18,7 @@ DynamicJsonDocument doc(128);
 void setup() {
   // 온습도
   Serial.begin(9600);
-  Serial.println(F("DHTxx test!"));
+  // Serial.println(F("DHTxx test!"));
   dht.begin();
 
   // 센서
