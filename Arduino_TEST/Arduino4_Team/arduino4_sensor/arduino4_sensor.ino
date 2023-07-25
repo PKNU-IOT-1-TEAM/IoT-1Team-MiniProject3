@@ -4,10 +4,10 @@
 #include <ArduinoJson.h>
 
 // Pin define
-#define SS_PIN 10
-#define RST_PIN 9
-#define CNT_WATER 7
-#define NCNT_WATER 5
+#define SS_PIN 10 // SDA
+#define RST_PIN 9  // RST
+// SCK 13, MOSI 11, MISO 12, IRQ 없음
+#define NCNT_WATER 5 // 비접촉 수위
 
 MFRC522 rfid(SS_PIN, RST_PIN);
 MFRC522::MIFARE_Key key; 
@@ -23,25 +23,27 @@ void setup() {
 void loop() {
   DynamicJsonDocument doc(128);
   
-  int clevel = analogRead(CNT_WATER);
+  int clevel = analogRead(A0);
   int nlevel = digitalRead(NCNT_WATER);
   String cardNumber = "None";
   
-  doc["NFC"] = cardNumber;
-  doc["WL_CNNT"] = clevel;
-  doc["WL_NCNNT"] = nlevel;
+  doc["AD4_RCV_NFC"] = cardNumber;
+  doc["AD4_RCV_WL_CNNT"] = clevel;
+  doc["AD4_RCV_WL_NCNNT"] = nlevel;
 
   if ( ! rfid.PICC_IsNewCardPresent())
   { 
-    serializeJson(doc, Serial);
-    Serial.println("");
+    String jsonStr; 
+    serializeJson(doc, jsonStr);
+    Serial.println(jsonStr);
     delay(10000);
     return;
   }
   if ( ! rfid.PICC_ReadCardSerial())
   {
-    serializeJson(doc, Serial);
-    Serial.println("");
+    String jsonStr; 
+    serializeJson(doc, jsonStr);
+    Serial.println(jsonStr);
     delay(10000);
     return;
   }
@@ -51,10 +53,11 @@ void loop() {
     cardNumber += rfid.uid.uidByte[i];
   }
 
-  doc["NFC"] = cardNumber;
-  
-  serializeJson(doc, Serial);
-  Serial.println("");
+  doc["AD4_RCV_NFC"] = cardNumber;
+
+  String jsonStr;
+  serializeJson(doc, jsonStr);
+  Serial.println(jsonStr);
    
   rfid.PICC_HaltA();
   rfid.PCD_StopCrypto1();
