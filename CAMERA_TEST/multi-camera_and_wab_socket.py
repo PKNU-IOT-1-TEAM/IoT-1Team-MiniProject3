@@ -4,7 +4,7 @@ from flask_socketio import SocketIO, emit
 import RPi.GPIO as GPIO
 from time import sleep
 import threading
-from picamera import PiCamera
+from picamera2 import Picamera2
 
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret!'
@@ -15,8 +15,8 @@ camera1_pin = 17
 camera2_pin = 18
 
 # 각 카메라를 위한 PiCamera 객체
-camera1 = PiCamera()
-camera2 = PiCamera()
+camera1 = Picamera2()
+camera2 = Picamera2()
 
 # 카메라 해상도 설정 (옵션)
 camera1.resolution = (640, 480)

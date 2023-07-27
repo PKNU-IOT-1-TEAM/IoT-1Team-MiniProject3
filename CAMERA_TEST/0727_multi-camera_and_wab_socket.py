@@ -2,7 +2,7 @@ import RPi.GPIO as gp
 import time
 import os
 from picamera2 import Picamera2
-from flask import Flask, render_template
+from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit
 from PIL import Image
 from io import BytesIO
@@ -56,6 +56,7 @@ class WorkThread(threading.Thread):
         flag = False
 
         # 각 채널 "A"와 "B"에 대해 반복합니다.
+
         for item in {"A", "B"}:
             try:
                 # 채널과 I2C 초기화
@@ -129,4 +130,4 @@ if __name__ == "__main__":
     gp.setup(12, gp.OUT)
 
     # Flask 앱을 SocketIO 지원으로 실행합니다.
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=9000)
