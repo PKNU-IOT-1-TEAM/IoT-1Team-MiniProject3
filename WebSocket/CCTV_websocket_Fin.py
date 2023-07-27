@@ -130,6 +130,6 @@ if __name__ == '__main__':
         server = StreamingServer(address, StreamingHandler)
         socketio.init_app(app)
         socketio.start_background_task(server.serve_forever)
-        app.run(host='0.0.0.0', debug=False)
+        app.run(host='0.0.0.0', port=9000, debug=False)
     finally:
         picamera.stop_recording()

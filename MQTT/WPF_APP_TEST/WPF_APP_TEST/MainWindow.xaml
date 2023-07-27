@@ -16,16 +16,25 @@
         </Grid.ColumnDefinitions>
 
         <Grid Grid.Column="0">
-            <Button x:Name="BtnSend" Content="데이터 전송" Width="100" Height="50" Click="BtnSend_Click">
-            </Button>
+            <!--<Button x:Name="BtnSend" Content="데이터 전송" Width="100" Height="50" Click="BtnSend_Click">
+            </Button>-->
+            <Grid.RowDefinitions>
+                <RowDefinition Height="100*"/>
+                <RowDefinition Height="100*"/>
+                <RowDefinition Height="100*"/>
+            </Grid.RowDefinitions>
+            <ToggleButton x:Name="BtnCGuard" Grid.Row="0" Content="차단봉" IsChecked="False" Width="100" Height="50" Click="BtnCGuard_Click" />
+            <ToggleButton x:Name="BtnLinear" Grid.Row="1" Content="차수막" IsChecked="False" Width="100" Height="50" Click="BtnLinear_Click"/>
+            <ToggleButton x:Name="BtnWPump" Grid.Row="2" Content="워터펌프" IsChecked="False" Width="100" Height="50" Click="BtnWPump_Click"/>
+
         </Grid>
         <Grid Grid.Column="1">
             <Grid.RowDefinitions>
                 <RowDefinition Height="100*"/>
                 <RowDefinition Height="400*"/>
             </Grid.RowDefinitions>
-            <Button Grid.Row="0" x:Name="BtnRead" Content="데이터 읽기" Width="100" Height="50" Click="BtnRead_Click">
-            </Button>
+            <TextBlock Grid.Row="0" x:Name="BtnRead" Text="읽어온 데이터" VerticalAlignment="Center" HorizontalAlignment="Center" FontSize="30">
+            </TextBlock>
             <TextBlock Grid.Row="1" x:Name="OutputText" TextWrapping="Wrap" Margin="10"/>
         </Grid>
     </Grid>
