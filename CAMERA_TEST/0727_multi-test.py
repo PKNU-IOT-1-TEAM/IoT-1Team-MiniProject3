@@ -37,6 +37,7 @@ class CameraThread(threading.Thread):
         channel_info = channel_info.get(self.channel)
         if channel_info is None:
             print("해당 정보를 찾을 수 없습니다.")
+        # gpio Write
         gpio_sta = channel_info["gpio_sta"]
         gp.output(7, gpio_sta[0])
         gp.output(11, gpio_sta[1])
@@ -54,7 +55,7 @@ class CameraThread(threading.Thread):
             }
         }
         channel_info = channel_info.get(self.channel)
-        os.system(channel_info["i2c_cmd"])
+        os.system(channel_info["i2c_cmd"]) # i2c write
 
     def run(self):
         self.select_channel()
@@ -109,7 +110,7 @@ def handle_connect():
             cam_thread.start()
 
 # 웹 소켓 연결 해제 핸들러
-@socketio.on('disconnect', namespace='/camera')
+@socketio.on('disconnect', namespace='/discamera')
 def handle_disconnect():
     pass
 
