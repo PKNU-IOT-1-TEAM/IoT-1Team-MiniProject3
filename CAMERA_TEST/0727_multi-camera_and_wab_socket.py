@@ -81,7 +81,8 @@ class WorkThread(threading.Thread):
                     image_bytes = BytesIO()
                     img.save(image_bytes, format='JPEG')
 
-                    emit('update_image', {'item': item, 'image': image_bytes.getvalue()}, namespace='/camera')
+                    # 웹 소켓을 통해 이미지를 클라이언트로 전송
+                    socketio.emit('update_image', {'item': item, 'image': image_bytes.getvalue()}, namespace='/camera')
                 except Exception as e:
                     print("캡처 버퍼: " + str(e))
             time.sleep(0.1)
@@ -101,6 +102,22 @@ def cam1():
 def cam2():
     return render_template('camera.html', cam_name="Camera 2")
 
+# 웹 소켓 연결 핸들러
+@socketio.on('connect', namespace='/camera')
+def handle_connect():
+    global picam2, work
+    work = WorkThread()
+    work.start()
+    picam2 = Picamera2()
+    picam2.configure(picam2.create_still_configuration(main={"size": (320, 240), "format": "BGR888"}, buffer_count=2))
+    picam2.start()
+
+# 웹 소켓 연결 해제 핸들러
+@socketio.on('disconnect', namespace='/camera')
+def handle_disconnect():
+    global picam2
+    picam2.close()
+
 if __name__ == "__main__":
     gp.setwarnings(False)
     gp.setmode(gp.BOARD)
@@ -108,21 +125,5 @@ if __name__ == "__main__":
     gp.setup(11, gp.OUT)
     gp.setup(12, gp.OUT)
 
-    # 웹 소켓 연결 핸들러
-    @socketio.on('connect', namespace='/camera')
-    def handle_connect():
-        global picam2, work
-        work = WorkThread()
-        work.start()
-        picam2 = Picamera2()
-        picam2.configure(picam2.create_still_configuration(main={"size": (320, 240), "format": "BGR888"}, buffer_count=2))
-        picam2.start()
-
-    # 웹 소켓 연결 해제 핸들러
-    @socketio.on('disconnect', namespace='/camera')
-    def handle_disconnect():
-        global picam2
-        picam2.close()
-
     # Flask 앱을 SocketIO 지원으로 실행합니다.
-    socketio.run(app, host='0.0.0.0', port=9000)
+    socketio.run(app, host='0.0.0.0', port=5000)
