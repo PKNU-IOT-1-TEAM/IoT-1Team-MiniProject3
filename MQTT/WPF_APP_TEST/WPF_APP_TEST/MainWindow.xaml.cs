@@ -7,6 +7,7 @@ using uPLibrary.Networking.M2Mqtt.Messages;
 using Newtonsoft.Json;
 using System.Text;
 using System.Windows.Markup;
+using System.Windows.Controls.Primitives;
 
 namespace WPF_APP_TEST
 {
@@ -29,32 +30,7 @@ namespace WPF_APP_TEST
 			mqttClient.Connect(Guid.NewGuid().ToString());
 			mqttClient.Subscribe(new string[] { s_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
 		}
-        private void BtnSend_Click(object sender, RoutedEventArgs e)
-        {
-            //if (mqttClient == null)
-            //{
-            //mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
-            //mqttClient.Connect(Guid.NewGuid().ToString());
-            //}
-
-            var data = new { AD1 = 0, AD2 = 0, AD3 = 1, AD4 = 0};  // 전송할 데이터 json형식으로 생성
-            string json = JsonConvert.SerializeObject(data);
-            
-            mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-        }
-
-        private void BtnRead_Click(object sender, RoutedEventArgs e)
-        {
-
-            //if (mqttClient == null)
-            //{
-            //    mqttClient = new MqttClient(brokerAddress, brokerPort, false, null, null, MqttSslProtocols.None);
-            //    mqttClient.MqttMsgPublishReceived += MqttClient_MqttMsgPublishReceived;
-            //    mqttClient.Connect(Guid.NewGuid().ToString());
-            //    mqttClient.Subscribe(new string[] { s_topic }, new byte[] { MqttMsgBase.QOS_LEVEL_EXACTLY_ONCE });
-            //}
-        }
-
+       
         private void MqttClient_MqttMsgPublishReceived(object sender, MqttMsgPublishEventArgs e)
         {
             // MQTT message received event handler
@@ -68,64 +44,117 @@ namespace WPF_APP_TEST
             int? AD1_RCV_Humidity = data.AD1_RCV_Humidity;
             int? AD1_RCV_Dust = data.AD1_RCV_Dust;
             int? AD2_RCV_CGuard = data.AD2_RCV_CGuard;
+            int? AD2_RCV_IR_Sensor = data.AD2_RCV_IR_Sensor;
             int? AD3_RCV_WGuard_Wave = data.AD3_RCV_WGuard_Wave;
             string AD4_RCV_NFC = data.AD4_RCV_NFC;
             int? AD4_RCV_WL_CNNT = data.AD4_RCV_WL_CNNT;
-            int? AD4_RCV_WL_NCNNT = data.AD4_RCV_WL_NCNNT;
 
-            if (AD1_RCV_IR_Sensor != 1)
-            {
-				var Adata2 = new { AD2 = 1 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata2);
-
-				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-			}
-            else
-            {
-				var Adata2 = new { AD2 = -1 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata2);
-
-				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-			}
-
-
-
-            if (AD4_RCV_WL_CNNT < 400)
-            {
-                var Adata3 = new { AD3_CNNT = 0 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata3);
-
-                mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-            }
-            else if (AD4_RCV_WL_CNNT >= 400)
-            {
-				var Adata3 = new { AD3_CNNT = 1 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata3);
-
-				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-			}
-            
-            if (AD4_RCV_WL_NCNNT == 1)
-            {
-				var Adata3 = new { AD3_NCNNT = 2 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata3);
-
-				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
-			}
-			else if (AD4_RCV_WL_NCNNT == 0)
+			// 아두이노 1
+			// 1. 주차장 내부 LED
+			// 주차장에 차 있고 예약된 자리가 아니면 => 흰색
+			// 주차장에 차 없고 예약된 자리이면		 => 주황색
+			// 주차장에 차 없고 예약된 자리가 아니면 => 녹색
+			// 주차장에 차 있고 예약된 자리이면		 => 빨간색
+			if (AD1_RCV_IR_Sensor == 0)
 			{
-				var Adata3 = new { AD3_NCNNT = 3 };  // 전송할 데이터 json형식으로 생성
-				string json = JsonConvert.SerializeObject(Adata3);
+				var Adata = new { AD1_LED_RED = 1 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata);
 
 				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
 			}
+			else if (AD1_RCV_IR_Sensor == 1)
+			{
+				var Adata = new { AD1_LED_RED = 2 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			/*
+			else if(AD1_RCV_IR_Sensor == 0)
+			{
+				var Adata = new { AD1_LED_RED = 3 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			else if(AD1_RCV_IR_Sensor == 1)
+			{
+				var Adata = new { AD1_LED_RED = 4 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(Adata);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			*/
+
+
+			// 아두이노 2
+			// 2. 주차장 입구 차단봉
+			// 카메라로 차가 있는지 없는지 판단,등록된 차량이면(0아니면1로)
+
+
+			// 아두이노 3
+			// 3. 물 수위 일정 높이 이하면 워터펌프 멈춤(0)
+            
 
 			// Update UI or perform other logic with the received data
 			Dispatcher.Invoke(() =>
             {
-                OutputText.Text = $"AD1_RCV_IR Sensor = {AD1_RCV_IR_Sensor}, AD1_RCV_Temperature = {AD1_RCV_Temperature}, AD1_RCV_Humidity = {AD1_RCV_Humidity}, AD1_RCV_Dust = {AD1_RCV_Dust}, AD2_RCV_CGuard = {AD2_RCV_CGuard}, AD3_RCV_WGuard_Wave = {AD3_RCV_WGuard_Wave}, AD4_RCV_NFC = {AD4_RCV_NFC}, AD4_RCV_WL_CNNT = {AD4_RCV_WL_CNNT}, AD4_RCV_WL_NCNNT = {AD4_RCV_WL_NCNNT}";
+                OutputText.Text = $"AD1_RCV_IR Sensor = {AD1_RCV_IR_Sensor}, AD1_RCV_Temperature = {AD1_RCV_Temperature}, AD1_RCV_Humidity = {AD1_RCV_Humidity}, AD1_RCV_Dust = {AD1_RCV_Dust}, AD2_RCV_CGuard = {AD2_RCV_CGuard}, AD3_RCV_WGuard_Wave = {AD3_RCV_WGuard_Wave}, AD4_RCV_NFC = {AD4_RCV_NFC}, AD4_RCV_WL_CNNT = {AD4_RCV_WL_CNNT}";
             });
         }
 
-    }
+		private void BtnCGuard_Click(object sender, RoutedEventArgs e)
+		{
+			if (BtnCGuard.IsChecked == true)
+			{
+				var data = new { AD2 = 2 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			else
+			{
+				var data = new { AD2 = 3 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+		}
+
+		private void BtnLinear_Click(object sender, RoutedEventArgs e)
+		{
+			if (BtnLinear.IsChecked == true)
+			{
+				var data = new { AD3_Linear = 2 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			else
+			{
+				var data = new { AD3_Linear = 3 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+		}
+
+		private void BtnWPump_Click(object sender, RoutedEventArgs e)
+		{
+			if (BtnWPump.IsChecked == true)
+			{
+				var data = new { AD3_WPump = 0 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+				
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+			else
+			{
+				var data = new { AD3_WPump = 1 };  // 전송할 데이터 json형식으로 생성
+				string json = JsonConvert.SerializeObject(data);
+
+				mqttClient.Publish(p_topic, Encoding.UTF8.GetBytes(json));
+			}
+		}
+	}
 }
