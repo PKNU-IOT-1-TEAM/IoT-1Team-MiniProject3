@@ -47,10 +47,10 @@ class Publisher(Thread):
 
     def publish_data_auto(self):
         # 큐에서 모든 센서 값을 가져와 딕셔너리에 저장
-        sensor_data = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust': None, # 아두이노1
-                       'AD2_RCV_CGuard':None ,                                                                              # 아두이노2
-                       'AD3_RCV_WGuard_Wave':None,                                                                          # 아두이노3
-                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None}                                                         # 아두이노4
+        sensor_data = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust': None, 'AD1_RCV_Parking_Status':None,  # 아두이노1
+                       'AD2_RCV_CGuard':None ,                                                                                                              # 아두이노2
+                       'AD3_RCV_WGuard_Wave':None,                                                                                                          # 아두이노3
+                       'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None}                                                                                         # 아두이노4
         while True:
             while not self.sensor_queue.empty():   # 큐가 비워질때까지 루프
                 new_sensor_data = self.sensor_queue.get()    # 큐에서 하나 get
@@ -125,7 +125,7 @@ class Arduino(Thread):
         if not self.command_queue.empty():
             # 큐에 있는 첫 번째 명령을 가져와서 키와 값을 분리
             command_data = self.command_queue.queue[0]
-            command_name, command_value = command_data.popitem()
+            command_name, command_value = next(iter(command_data.items()))
             if self.arduino_type in command_name:   # 해당 아두이노의 명령이 맞으면
                 self.command_queue.get()    # 큐에서 데이터 꺼내기
                 command_str = json.dumps({command_name: command_value})
@@ -152,22 +152,22 @@ if __name__ == '__main__':
 
     # 아두이노 1,2,3,4 쓰레드 생성
     arduino1_thread = Arduino('AD1',AD1_PORT, sensor_queue, command_queue)
-    # arduino2_thread = Arduino('AD2',AD2_PORT, sensor_queue, command_queue)
-    # arduino3_thread = Arduino('AD3', AD3_PORT, sensor_queue, command_queue)
-    # arduino4_thread = Arduino('AD4', AD4_PORT, sensor_queue, command_queue)
+    arduino2_thread = Arduino('AD2',AD2_PORT, sensor_queue, command_queue)
+    arduino3_thread = Arduino('AD3', AD3_PORT, sensor_queue, command_queue)
+    arduino4_thread = Arduino('AD4', AD4_PORT, sensor_queue, command_queue)
 
-    # 쓰레드 시작
+    # # 쓰레드 시작
     publisher_thread.start()
     subscriber_thread.start()
     arduino1_thread.start()
-    # arduino2_thread.start()
-    # arduino3_thread.start()
-    # arduino4_thread.start()
+    arduino2_thread.start()
+    arduino3_thread.start()
+    arduino4_thread.start()
 
     # 쓰레드 종료 대기
     publisher_thread.join()
     subscriber_thread.join()
     arduino1_thread.join()
-    # arduino2_thread.join()
-    # arduino3_thread.join()
-    # arduino4_thread.join()
+    arduino2_thread.join()
+    arduino3_thread.join()
+    arduino4_thread.join()
