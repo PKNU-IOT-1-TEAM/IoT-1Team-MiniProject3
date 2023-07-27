@@ -1,15 +1,21 @@
 <!DOCTYPE html>
 <html>
+<head>
+    <title>WebSocket Video Viewer</title>
+</head>
+<body>
+    <img id="video" src="" alt="Real-time Video">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        const videoElement = document.getElementById('video');
+        const socket = io.connect('http://' + document.domain + ':' + location.port + '/camera');
 
-
-  <body>
-    <h1>Live streaming</h1>
-    <div>
-
-        <img src="{{ url_for('video') }}" width="50%"/>
-    </div>
-            
-    </body>
-
-
+        // 이미지를 수신하면 이미지 업데이트
+        socket.on('update_image', (data) => {
+            const imageBlob = new Blob([data.image], { type: 'image/jpeg' });
+            const imageUrl = URL.createObjectURL(imageBlob);
+            videoElement.src = imageUrl;
+        });
+    </script>
+</body>
 </html>
