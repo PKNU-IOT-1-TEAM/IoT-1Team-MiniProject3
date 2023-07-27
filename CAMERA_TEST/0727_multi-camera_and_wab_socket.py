@@ -1,33 +1,80 @@
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
 import cv2
-from io import BytesIO
+import threading
+from flask import Flask, render_template, Response
 
 app = Flask(__name__)
-socketio = SocketIO(app)
 
-# 카메라 초기화
-camera = cv2.VideoCapture(0)  # 카메라 인덱스는 0일 수도 있고, 다른 값일 수도 있습니다.
+camera_a = cv2.VideoCapture(0)  # A 카메라 포트
+camera_c = cv2.VideoCapture(2)  # C 카메라 포트
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+camera_a.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+camera_a.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
 
-def capture_and_emit():
+camera_c.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+camera_c.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+
+frame_a = None
+frame_c = None
+lock = threading.Lock()
+
+def video_stream(camera):
+    global frame_a, frame_c
+
     while True:
-        # 이미지 캡처
         ret, frame = camera.read()
-        if ret:
-            # 이미지를 JPEG 형식으로 인코딩하여 웹소켓 클라이언트로 전송
-            _, image_bytes = cv2.imencode('.jpg', frame)
-            socketio.emit('update_image', {'image': image_bytes.tobytes()})
+        if not ret:
+            break
 
-# 웹소켓 연결 시 호출되는 이벤트 핸들러
-@socketio.on('connect', namespace='/camera')
-def handle_connect():
-    print('WebSocket client connected.')
-    # 이미지 캡처 및 웹소켓 클라이언트로의 이미지 전송을 백그라운드에서 시작
-    socketio.start_background_task(target=capture_and_emit)
+        with lock:
+            if camera == camera_a:
+                frame_a = frame.copy()
+            else:
+                frame_c = frame.copy()
+
+thread_a = threading.Thread(target=video_stream, args=(camera_a,))
+thread_a.daemon = True
+thread_a.start()
+
+thread_c = threading.Thread(target=video_stream, args=(camera_c,))
+thread_c.daemon = True
+thread_c.start()
+
+def gen_frames(camera):
+    global frame_a, frame_c
+
+    while True:
+        with lock:
+            if camera == 'a' and frame_a is not None:
+                ret, buffer = cv2.imencode('.jpg', frame_a)
+            elif camera == 'c' and frame_c is not None:
+                ret, buffer = cv2.imencode('.jpg', frame_c)
+            else:
+                continue
+
+        if not ret:
+            continue
+
+        frame = buffer.tobytes()
+        yield (b'--frame\r\n'
+               b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
+
+# 각각의 웹페이지 라우트
+@app.route('/camera_a')
+def camera_a():
+    return render_template('camera_a.html')
+
+@app.route('/camera_c')
+def camera_c():
+    return render_template('camera_c.html')
+
+# 영상 스트리밍 라우트
+@app.route('/video_feed_a')
+def video_feed_a():
+    return Response(gen_frames('a'), mimetype='multipart/x-mixed-replace; boundary=frame')
+
+@app.route('/video_feed_c')
+def video_feed_c():
+    return Response(gen_frames('c'), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=8765)
+    app.run(host='0.0.0.0', port=9000, debug=True)
