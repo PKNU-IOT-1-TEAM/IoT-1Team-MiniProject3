@@ -1,30 +1,27 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>{{ cam_name }} - Camera Feed</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <title>Camera Stream - {{ camera_port }}</title>
+</head>
+<body>
+    <h1>Camera Stream - {{ camera_port }}</h1>
+    <img id="camera_img" width="640" height="480">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.3.1/socket.io.js"></script>
     <script>
-        const socket = io.connect('http://' + document.domain + ':' + location.port);
+        var socket = io.connect('http://' + document.domain + ':' + location.port + '/camera');
 
         socket.on('connect', function() {
-            console.log('Socket connected');
+            console.log('Connected to server');
         });
 
-        socket.on('update_image', function(data) {
-            const item = data.item;
-            if (item === '{{ cam_name }}') {
-                const imageSrc = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(data.image)));
-                document.getElementById('camera-image').src = imageSrc;
-            }
+        socket.on('image', function(data) {
+            var img = document.getElementById('camera_img');
+            img.src = 'data:image/jpeg;base64,' + data['image_data'];
         });
 
         socket.on('disconnect', function() {
-            console.log('Socket disconnected');
+            console.log('Disconnected from server');
         });
     </script>
-</head>
-<body>
-    <h1>{{ cam_name }} - Camera Feed</h1>
-    <img id="camera-image" width="320" height="240">
 </body>
 </html>
