@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Camera C Stream</title>
+</head>
+<body>
+    <img id="image_c" src="#" alt="Camera C Stream">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.1.3/socket.io.js"></script>
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
+
+        // 이미지 업데이트
+        socket.on('image_c', function(image_data) {
+            var image = document.getElementById('image_c');
+            image.src = 'data:image/jpeg;base64,' + image_data;
+        });
+
+        // 페이지 로드 시 카메라 C 이미지 요청
+        document.addEventListener('DOMContentLoaded', function() {
+            socket.emit('request_image_c');
+        });
+    </script>
+</body>
+</html>

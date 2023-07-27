@@ -1,61 +1,77 @@
-import RPi.GPIO as gp
 import time
-import os
-import io
-from picamera import PiCamera
-from flask import Flask, render_template
+from threading import Thread
+from flask import Flask, render_template, Response
 from flask_socketio import SocketIO, emit
+import picamera
 
-# GPIO 초기화
-gp.setwarnings(False)
-gp.setmode(gp.BOARD)
-gp.setup(7, gp.OUT)
-gp.setup(11, gp.OUT)
-gp.setup(12, gp.OUT)
-
-# 카메라 초기화
-camera = PiCamera()
-camera.resolution = (320, 240)
-
-# Flask 설정
 app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
-socketio = SocketIO(app, cors_allowed_origins='*')
+socketio = SocketIO(app)
 
-# 첫 번째 카메라 페이지 라우트
-@app.route('/cam1')
-def cam1():
-    return render_template('camera.html', cam_name="Camera 1")
+# 카메라 초기화
+camera_a = picamera.PiCamera(camera_num=0)
+camera_c = picamera.PiCamera(camera_num=2)
 
-# 두 번째 카메라 페이지 라우트
-@app.route('/cam2')
-def cam2():
-    return render_template('camera.html', cam_name="Camera 2")
+# 카메라 해상도 설정 (옵션)
+# camera_a.resolution = (640, 480)
+# camera_c.resolution = (640, 480)
 
-# 웹 소켓 연결 핸들러
-@socketio.on('connect', namespace='/camera')
-def handle_connect():
-    gp.output(7, 0)  # 채널 A 선택
-    gp.output(11, 0)
-    gp.output(12, 1)
-    time.sleep(0.5)
-    socketio.start_background_task(camera_stream, 'Camera 1')  # 첫 번째 카메라 스트리밍 시작
+# 웹 소켓 통신을 위한 스레드
+def background_thread():
+    while True:
+        # 카메라 A 캡처 및 웹소켓 전송
+        with camera_a as camera:
+            image_a = camera.capture_bytes(format='jpeg')
+            socketio.emit('image_a', image_a, broadcast=True)
 
-# 웹 소켓 연결 해제 핸들러
-@socketio.on('disconnect', namespace='/camera')
-def handle_disconnect():
-    pass
+        # 카메라 C 캡처 및 웹소켓 전송
+        with camera_c as camera:
+            image_c = camera.capture_bytes(format='jpeg')
+            socketio.emit('image_c', image_c, broadcast=True)
 
-def camera_stream(cam_name):
-    stream = io.BytesIO()
-    for frame in camera.capture_continuous(stream, format='jpeg', use_video_port=True):
-        # 이미지 스트림을 소켓으로 전송
-        stream.seek(0)
-        image_bytes = stream.read()
-        socketio.emit('update_image', {'cam_name': cam_name, 'image': image_bytes}, namespace='/camera', broadcast=True)
+        time.sleep(0.1)
 
-        stream.seek(0)
-        stream.truncate()
+# 웹 소켓 연결 시 처리
+@socketio.on('connect')
+def on_connect():
+    print('Client connected')
+    emit('message', 'Connected')
+    emit('start_streaming')  # 스트리밍 시작 요청
 
-if __name__ == "__main__":
+# 웹 소켓 연결 종료 시 처리
+@socketio.on('disconnect')
+def on_disconnect():
+    print('Client disconnected')
+
+# 카메라 A 이미지 전송
+@socketio.on('request_image_a')
+def request_image_a():
+    with camera_a as camera:
+        image_a = camera.capture_bytes(format='jpeg')
+        emit('image_a', image_a)
+
+# 카메라 C 이미지 전송
+@socketio.on('request_image_c')
+def request_image_c():
+    with camera_c as camera:
+        image_c = camera.capture_bytes(format='jpeg')
+        emit('image_c', image_c)
+
+# 카메라 A 화면 렌더링
+@app.route('/camera_a')
+def camera_a():
+    return render_template('camera_a.html')
+
+# 카메라 C 화면 렌더링
+@app.route('/camera_c')
+def camera_c():
+    return render_template('camera_c.html')
+
+if __name__ == '__main__':
+    # 웹 소켓 스레드 시작
+    socket_thread = Thread(target=background_thread)
+    socket_thread.daemon = True
+    socket_thread.start()
+
+    # Flask 앱 실행
     socketio.run(app, host='0.0.0.0', port=9000)
