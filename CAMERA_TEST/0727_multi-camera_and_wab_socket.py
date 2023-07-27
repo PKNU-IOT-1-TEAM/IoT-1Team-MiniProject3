@@ -5,7 +5,11 @@ from flask import Flask, render_template, Response
 app = Flask(__name__)
 
 camera_a = cv2.VideoCapture(0)  # A 카메라 포트
-camera_c = cv2.VideoCapture(2)  # C 카메라 포트
+if not camera_a.isOpened():
+    raise Exception("A 포트 카메라를 찾을 수 없습니다. 인덱스를 확인해주세요.")
+camera_c = cv2.VideoCapture(1)  # D 카메라 포트
+if not camera_c.isOpened():
+    raise Exception("D 포트 카메라를 찾을 수 없습니다. 인덱스를 확인해주세요.")
 
 camera_a.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
 camera_a.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)

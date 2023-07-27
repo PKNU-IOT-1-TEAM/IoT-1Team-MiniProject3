@@ -19,7 +19,7 @@ from flask_socketio import SocketIO
 app = Flask(__name__)
 socketio = SocketIO(app)
 
-PAGE = """\
+PAGE = """
 <html>
 <head>
 <title>PiCamera Streaming Demo</title>
@@ -110,14 +110,12 @@ def video_feed():
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
-
 def gen():
     while True:
         frame = output.frame
         if frame is not None:
             yield (b'--frame\r\n'
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
-
 
 if __name__ == '__main__':
     picamera = Picamera2()
