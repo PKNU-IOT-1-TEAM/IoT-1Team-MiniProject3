@@ -89,7 +89,6 @@ class WorkThread(threading.Thread):
 
 # Flask 설정
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'secret_key'
 socketio = SocketIO(app)
 
 # 첫 번째 카메라 페이지 라우트
@@ -126,4 +125,4 @@ if __name__ == "__main__":
     gp.setup(12, gp.OUT)
 
     # Flask 앱을 SocketIO 지원으로 실행합니다.
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=9000)
