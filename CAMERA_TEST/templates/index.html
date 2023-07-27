@@ -1,28 +1,21 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>Camera Feed</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <script>
-        const socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        socket.on('connect', function() {
-            console.log('Socket connected');
-        });
-
-        socket.on('update_image', function(data) {
-            const item = data.item;
-            const imageSrc = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(data.image)));
-            document.getElementById(item).src = imageSrc;
-        });
-
-        socket.on('disconnect', function() {
-            console.log('Socket disconnected');
-        });
-    </script>
+    <title>WebSocket Video Viewer</title>
 </head>
 <body>
-    <img id="A" width="320" height="240">
-    <img id="B" width="320" height="240">
+    <img id="video" src="" alt="Real-time Video">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script>
+        const videoElement = document.getElementById('video');
+        const socket = io.connect('http://' + document.domain + ':' + location.port + '/camera');
+
+        // 이미지를 수신하면 이미지 업데이트
+        socket.on('update_image', (data) => {
+            const imageBlob = new Blob([data.image], { type: 'image/jpeg' });
+            const imageUrl = URL.createObjectURL(imageBlob);
+            videoElement.src = imageUrl;
+        });
+    </script>
 </body>
 </html>

@@ -1,17 +1,13 @@
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
-from picamera import PiCamera
-from PIL import Image
+import cv2
 from io import BytesIO
-import numpy as np
 
 app = Flask(__name__)
 socketio = SocketIO(app)
 
 # 카메라 초기화
-camera = PiCamera()
-width, height = 640, 480
-camera.resolution = (width, height)
+camera = cv2.VideoCapture(0)  # 카메라 인덱스는 0일 수도 있고, 다른 값일 수도 있습니다.
 
 @app.route('/')
 def index():
@@ -20,13 +16,11 @@ def index():
 def capture_and_emit():
     while True:
         # 이미지 캡처
-        buf = camera.capture_array()
-        img = Image.fromarray(np.uint8(buf))
-
-        # 이미지를 JPEG 형식으로 인코딩하여 웹소켓 클라이언트로 전송
-        image_bytes = BytesIO()
-        img.save(image_bytes, format='JPEG')
-        socketio.emit('update_image', {'image': image_bytes.getvalue()})
+        ret, frame = camera.read()
+        if ret:
+            # 이미지를 JPEG 형식으로 인코딩하여 웹소켓 클라이언트로 전송
+            _, image_bytes = cv2.imencode('.jpg', frame)
+            socketio.emit('update_image', {'image': image_bytes.tobytes()})
 
 # 웹소켓 연결 시 호출되는 이벤트 핸들러
 @socketio.on('connect', namespace='/camera')
@@ -36,4 +30,4 @@ def handle_connect():
     socketio.start_background_task(target=capture_and_emit)
 
 if __name__ == '__main__':
-    socketio.run(app, host='0.0.0.0', port=9000)
+    socketio.run(app, host='0.0.0.0', port=8765)
