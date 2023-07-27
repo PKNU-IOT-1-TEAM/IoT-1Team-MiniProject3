@@ -101,12 +101,17 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = 'secret_key'
 socketio = SocketIO(app)
 
-# HTML 페이지를 제공하는 Flask 라우트
-@app.route('/')
-def index():
-    return render_template('index.html')
+# 첫 번째 카메라 페이지 라우트
+@app.route('/cam1')
+def cam1():
+    return render_template('camera.html', cam_name="Camera 1")
 
-# WebSocket 연결 핸들러
+# 두 번째 카메라 페이지 라우트
+@app.route('/cam2')
+def cam2():
+    return render_template('camera.html', cam_name="Camera 2")
+
+# 웹 소켓 연결 핸들러 수정
 @socketio.on('connect')
 def handle_connect():
     global picam2, work
@@ -116,18 +121,12 @@ def handle_connect():
     picam2.configure(picam2.create_still_configuration(main={"size": (320, 240), "format": "BGR888"}, buffer_count=2))
     picam2.start()
 
-# WebSocket 연결 해제 핸들러
+# 웹 소켓 연결 해제 핸들러 수정
 @socketio.on('disconnect')
 def handle_disconnect():
     global picam2
     picam2.close()
 
 if __name__ == "__main__":
-    gp.setwarnings(False)
-    gp.setmode(gp.BOARD)
-    gp.setup(7, gp.OUT)
-    gp.setup(11, gp.OUT)
-    gp.setup(12, gp.OUT)
-
-    # Flask 앱을 SocketIO 지원으로 실행합니다.
-    socketio.run(app, host='0.0.0.0', port=9000)
+    # 원하는 라우트를 추가하고 포트를 변경하면 됩니다.
+    app.run(host='0.0.0.0', port=5000)
