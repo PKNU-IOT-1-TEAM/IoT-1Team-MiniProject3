@@ -13,8 +13,8 @@ camera_a = picamera.PiCamera(camera_num=0)
 camera_c = picamera.PiCamera(camera_num=2)
 
 # 카메라 해상도 설정 (옵션)
-# camera_a.resolution = (640, 480)
-# camera_c.resolution = (640, 480)
+camera_a.resolution = (640, 480)
+camera_c.resolution = (640, 480)
 
 # 웹 소켓 통신을 위한 스레드
 def background_thread():

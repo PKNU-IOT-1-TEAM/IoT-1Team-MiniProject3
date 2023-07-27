@@ -126,7 +126,7 @@ if __name__ == '__main__':
     picamera.start_recording(JpegEncoder(), FileOutput(output))
 
     try:
-        address = ('', 8000)
+        address = ('', 9000)
         server = StreamingServer(address, StreamingHandler)
         socketio.init_app(app)
         socketio.start_background_task(server.serve_forever)
