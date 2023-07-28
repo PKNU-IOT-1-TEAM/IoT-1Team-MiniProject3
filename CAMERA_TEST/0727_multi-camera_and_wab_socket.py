@@ -1,5 +1,6 @@
 import cv2
 import io
+from picamera2 import Picamera2 as cam2
 import threading
 from flask import Flask, render_template, Response
 from flask_socketio import SocketIO
@@ -8,14 +9,15 @@ app = Flask(__name__)
 socketio = SocketIO(app)
 
 # 카메라 초기화
-camera = cv2.VideoCapture(0)
-camera.set(3, 640)  # 가로 해상도 설정
-camera.set(4, 480)  # 세로 해상도 설정
+picam = cam2()
+picam.preview_configuration.size=(800,600)
+picam.preview_configuration.main.format='RGB888'
+picam.preview_configuration.align()
 
 # 웹소켓으로 영상 전송하는 함수
 def send_video():
     while True:
-        success, frame = camera.read()
+        success, frame = picam.read()
         if not success:
             break
         
@@ -50,4 +52,4 @@ def on_disconnect():
 if __name__ == '__main__':
     video_thread = threading.Thread(target=send_video)
     video_thread.daemon = True
-    socketio.run(app, host='0.0.0.0', port=9001, debug=False)
+    socketio.run(app, host='0.0.0.0', port=9000, debug=False)

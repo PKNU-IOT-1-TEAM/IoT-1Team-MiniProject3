@@ -10,22 +10,21 @@ import socketserver
 from http import server
 from threading import Condition
 
-
 from picamera2 import Picamera2
 from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
 
-from flask import Flask, render_template
-from flask_socketio import SocketIO, emit
 PAGE = """
 <html>
+<head>
+<title>picamera2 MJPEG streaming demo</title>
+</head>
 <body>
+<h1>Picamera2 MJPEG Streaming Demo</h1>
 <img src="stream.mjpg" width="640" height="480" />
 </body>
 </html>
 """
-app = Flask(__name__)
-socketio = SocketIO(app)
 
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
@@ -89,6 +88,8 @@ output = StreamingOutput()
 picam2.start_recording(JpegEncoder(), FileOutput(output))
 
 try:
-    socketio.run(app, host='0.0.0.0', port=9000)
+    address = ('', 9000)
+    server = StreamingServer(address, StreamingHandler)
+    server.serve_forever()
 finally:
     picam2.stop_recording()
