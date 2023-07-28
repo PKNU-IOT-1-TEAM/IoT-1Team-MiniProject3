@@ -1,5 +1,7 @@
 import cv2
 from picamera2 import Picamera2 as cam2
+from picamera2 import Preview
+from picamera2.encoders import H264Encoder
 from flask import Flask, render_template
 from flask_socketio import SocketIO, emit
 import threading
@@ -14,18 +16,19 @@ picam.preview_configuration.size=(800,600)
 picam.preview_configuration.main.format='RGB888'
 picam.preview_configuration.align()
 
-
 def emit_camera_frames():
-    picam.configure('preview')
+    picam.configure(".jpg")
+    picam.start_preview()
     picam.start()
-
+    
     while True:
-        success, frame = picam.read()
-        if not success:
+        frame = picam.capture_file('TEST.jpg')
+        src = cv2.imread(frame, cv2.IMREAD_COLOR)
+        if not frame:
             break
         
         # 영상 데이터를 바이트 스트림으로 인코딩
-        ret, buffer = cv2.imencode('.jpg', frame)
+        ret, buffer = cv2.imencode('.jpg', src, [cv2.IMWRITE_WEBP_QUALITY, 100])
         frame_data = buffer.tobytes()
 
         # 웹소켓을 통해 클라이언트에게 영상 데이터 전송
