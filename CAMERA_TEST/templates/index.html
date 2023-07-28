@@ -1,20 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
-    <title>라즈베리 파이 영상 스트리밍</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
 </head>
-<body>
-    <h1>라즈베리 파이 영상 스트리밍</h1>
-    <img id="video" width="640" height="480" src="" alt="라이브 영상 스트리밍">
-    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
-    <script type="text/javascript">
-        const socket = io.connect('http://' + document.domain + ':' + location.port);
 
-        // 웹소켓으로부터 영상 데이터를 받아와 이미지 업데이트
-        socket.on('video_stream', function (data) {
-            var image = document.getElementById('video');
-            image.src = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
-        });
-    </script>
+<title>Make - PiStream</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
+<body>
+    <video width="640" height="480" controls>
+        <source src="http://192.168.0.102:8888" type="video/mp4">
+    </video> 
 </body>
 </html>
