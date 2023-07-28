@@ -1,9 +1,20 @@
 <!DOCTYPE html>
 <html>
 <body>
-    <video width="640" height="480" controls>
-        <source src="http://192.168.0.102:9000" type="video/mp4">
-    </video> 
+    <img id="video-stream" src="" style="width: 100%; height: auto;">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
+    <script type="text/javascript">
+        var socket = io.connect('http://' + document.domain + ':' + location.port);
 
+        socket.on('connect', function() {
+            console.log('서버에 연결되었습니다.');
+        });
+
+        socket.on('stream', function(data) {
+            var imgData = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
+            document.getElementById('video-stream').src = imgData;
+        });
+    </script>
 </body>
 </html>
