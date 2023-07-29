@@ -1,9 +1,3 @@
-#!/usr/bin/python3
-
-# Mostly copied from https://picamera.readthedocs.io/en/release-1.13/recipes2.html
-# Run this script, then point a web browser at http:<this-ip-address>:8000
-# Note: needs simplejpeg to be installed (pip3 install simplejpeg).
-
 import io
 import logging
 import socketserver
@@ -16,9 +10,11 @@ from picamera2.encoders import JpegEncoder
 from picamera2.outputs import FileOutput
 from flask_socketio import SocketIO
 
+# Flask 앱을 초기화
 app = Flask(__name__)
 socketio = SocketIO(app)
 
+# 웹 페이지 템플릿
 PAGE = """
 <html>
 <head>
@@ -41,6 +37,7 @@ PAGE = """
 </html>
 """
 
+# StreamingOutput 클래스 정의 - 프레임 스트리밍을 위한 출력 클래스
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -51,6 +48,7 @@ class StreamingOutput(io.BufferedIOBase):
             self.frame = buf
             self.condition.notify_all()
 
+# StreamingHandler 클래스 정의 - HTTP 요청을 처리하는 핸들러 클래스
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
@@ -82,7 +80,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
                     self.end_headers()
                     self.wfile.write(frame)
                     self.wfile.write(b'\r\n')
-                    # Send the frame to Flask-SocketIO
+                    # 프레임을 Flask-SocketIO로 보냄
                     socketio.emit('image', frame, namespace='/stream')
             except Exception as e:
                 logging.warning(
@@ -92,11 +90,12 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_error(404)
             self.end_headers()
 
-
+# StreamingServer 클래스 정의 - HTTP 서버를 생성하는 클래스
 class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
+# Flask 라우트와 기능들을 정의
 @app.route('/')
 def index():
     return render_template('index.html')
@@ -114,16 +113,19 @@ def gen():
                    b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n\r\n')
 
 if __name__ == '__main__':
+    # Picamera2를 초기화하고 설정
     picamera = Picamera2()
     picamera.resolution = (640, 480)
     output = StreamingOutput()
     picamera.start_recording(JpegEncoder(), FileOutput(output))
 
     try:
+        # 서버 설정 및 백그라운드에서 서버를 실행
         address = ('', 9000)
         server = StreamingServer(address, StreamingHandler)
         socketio.init_app(app)
         socketio.start_background_task(server.serve_forever)
         app.run(host='0.0.0.0', debug=False)
     finally:
+        # 서버 실행을 마치면 녹화를 중단
         picamera.stop_recording()
