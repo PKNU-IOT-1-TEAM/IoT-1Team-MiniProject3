@@ -1,20 +1,11 @@
+HTTP/1.1 200 OK
+Server:Linux Web Server
+Content-Type: text/html; charset=UTF-8, application/json, image/jpg
 <!DOCTYPE html>
 <html>
-<body>
-    <img id="video-stream" src="" style="width: 100%; height: auto;">
-    
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.2.0/socket.io.js"></script>
-    <script type="text/javascript">
-        var socket = io.connect('http://' + document.domain + ':' + location.port);
-
-        socket.on('connect', function() {
-            console.log('서버에 연결되었습니다.');
-        });
-
-        socket.on('stream', function(data) {
-            var imgData = 'data:image/jpeg;base64,' + btoa(String.fromCharCode.apply(null, new Uint8Array(data)));
-            document.getElementById('video-stream').src = imgData;
-        });
-    </script>
-</body>
+    <body>
+        <div class="container">
+            <img src="{{ url_for('video_feed') }}" width="100%">
+        </div>
+    </body>
 </html>

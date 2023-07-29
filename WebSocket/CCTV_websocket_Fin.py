@@ -53,7 +53,7 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
         if self.path == '/':
             self.send_response(301)
-            self.send_header('Location', '/index.html')
+            self.send_header('Location', '/stream.mjpg')
             self.end_headers()
         elif self.path == '/index.html':
             content = PAGE.encode('utf-8')
@@ -100,10 +100,18 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 def index():
     return render_template('index.html')
 
+<<<<<<< Updated upstream
 @app.route('/video_feed')
 def video_feed():
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
+=======
+
+# @app.route('/video_feed')
+# def video_feed():
+#     return Response(gen(),
+#                     mimetype='multipart/x-mixed-replace; boundary=frame')
+>>>>>>> Stashed changes
 
 def gen():
     while True:
@@ -125,7 +133,7 @@ if __name__ == '__main__':
         server = StreamingServer(address, StreamingHandler)
         socketio.init_app(app)
         socketio.start_background_task(server.serve_forever)
-        app.run(host='0.0.0.0', debug=False)
+        app.run(host='0.0.0.0', debug=True)
     finally:
         # 서버 실행을 마치면 녹화를 중단
         picamera.stop_recording()
