@@ -1,0 +1,461 @@
+﻿@using Microsoft.EntityFrameworkCore;
+@using Newtonsoft;
+@*
+    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
+*@
+
+@model CarReservationWeb.Models.Team1IotContext
+
+@{
+	string jsonParkingStatuses = string.Empty;
+	var httpContext = Context.Request.HttpContext;
+	var optionsBuilder = new DbContextOptionsBuilder<Team1IotContext>();
+
+	using (var db = new Team1IotContext(optionsBuilder.Options))
+	{
+		List<ParkingStatus> parkingStatuses = db.ParkingStatuses.ToList();
+
+		jsonParkingStatuses = Newtonsoft.Json.JsonConvert.SerializeObject(parkingStatuses);
+	}
+}
+
+<html>
+<head>
+	<link rel="stylesheet" type="text/css" href="jQuery-Seat-Charts/jquery.seat-charts.css">
+	<style>
+		html, body {
+			position: relative;
+			min-height: 100vh;
+			background-color: #E1E8EE;
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			font-family: "Fira Sans", Helvetica, Arial, sans-serif;
+			-webkit-font-smoothing: antialiased;
+			-moz-osx-font-smoothing: grayscale;
+			background-color: #222;
+			overflow: hidden;
+			font-family: 'Lato', sans-serif;
+		}
+
+        button {
+            outline: none;
+            
+        }
+
+        .custom-btn {
+            border-radius: 5px;
+            border: 0px solid #000;
+            font-family: 'Lato', sans-serif;
+            background: transparent;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-block;
+            background-color: black;
+            color : white;
+        }
+
+        .btn-1 {
+            transition: all 0.3s ease;
+        }
+
+            .btn-1:hover {
+                box-shadow: -7px -7px 20px 0px #fff9, -4px -4px 5px 0px #fff9, 7px 7px 20px 0px #0002, 4px 4px 5px 0px #0001;
+            }
+
+		.form-structor {
+			background-color: white;
+			border-radius: 15px;
+			height: 550px;
+			width: 350px;
+			position: relative;
+			overflow: hidden;
+		}
+
+		.wrapper {
+			width: 100%;
+			text-align: center;
+		}
+
+		#seat-map {
+			width: 350px;
+			margin-left: 25%;
+			margin-top: 60px;
+		}
+
+		.my-box {
+			height: 10px;
+			width: 10px;
+		}
+
+		.booking-details {
+			float: left;
+			text-align: left;
+			margin-left: 35px;
+			font-size: 12px;
+			position: relative;
+			height: 401px;
+		}
+
+			.booking-details h2 {
+				margin: 25px 0 20px 0;
+				font-size: 17px;
+			}
+
+			.booking-details h3 {
+				margin: 5px 5px 0 0;
+				font-size: 14px;
+			}
+
+		div.seatCharts-row {
+			height: 35px;
+		}
+
+		div.seatCharts-legend {
+			padding-left: 0px;
+		}
+
+		ul.seatCharts-legendList {
+			padding-left: 0px;
+		}
+
+		span.seatCharts-legendDescription {
+			margin-left: 5px;
+			line-height: 30px;
+		}
+
+		.checkout-button {
+			display: block;
+			margin: 10px 0;
+			font-size: 14px;
+		}
+
+		div.seatCharts-seat.booking {
+			cursor: not-allowed;
+			background-color: darkorange;
+		}
+
+		div.seatCharts-seat.noproblem {
+			cursor: not-allowed;
+			background-color: gray;
+		}
+
+		div.seatCharts-seat.unavailable {
+			cursor: not-allowed;
+			background-color: red;
+		}
+
+		div.seatCharts-seat.available {
+			background-color: forestgreen;
+		}
+
+		.menu {
+			padding: 10px;
+			position: absolute;
+			width: 350px;
+			bottom: 0%;
+			z-index: 5;
+		}
+
+		.topmenu {
+			padding: 10px;
+			position: absolute;
+			width: 350px;
+			top: 0%;
+			z-index: 5;
+			text-align: center;
+			color: black;
+		}
+
+		.menu-details ul {
+			list-style-type: none;
+			margin: 0;
+			padding: 0;
+			text-align: center;
+		}
+
+			.menu-details ul li {
+				display: inline-block;
+				margin: 0 30px;
+			}
+
+				.menu-details ul li a {
+					color: #333;
+					text-decoration: none;
+				}
+	</style>
+</head>
+<body>
+	<div class="form-structor">
+		<div class="topmenu">
+			<div class="menu-details">
+				<h6><b>주차 예약 현황</b></h6>
+				<hr />
+			</div>
+		</div>
+		<div class="wrapper">
+			<div id="seat-map">
+			</div>
+			<div class="booking-details">
+				<table style="width: 300px; margin-top : 10px;">
+					<tbody style="text-align:center;">
+						<tr>
+							<td><div class="my-box" style="background-color: forestgreen; float:left; margin-right:5px;"></div><p>사용 가능</p></td>
+							<td><div class="my-box" style="background-color: orange; float:left; margin-right:5px;"></div><p>예약 중</p></td>
+							<td><div class="my-box" style="background-color: red; float:left; margin-right:5px;"></div><p>문제 있음</p></td>
+							<td><div class="my-box" style="background-color: gray; float:left; margin-right:5px;"></div><p>사용 중</p></td>
+						</tr>
+					</tbody>
+				</table>
+                <form id="selected-seat-form" asp-action="submit">
+                    <h3 style="text-align : center;"><b>선택된 자리</b>　<button class="custom-btn btn-1" onclick="checkHiddenValue()">예약하기</button></h3>
+                    <input type="hidden" id="selected-seat-number" name="selectedSeatNumber" value="" />
+                    <p id="selected-seats" style="text-align:center; margin-top:10px;"></p>
+                </form>
+			</div>
+		</div>
+		<div class="menu">
+			<div class="menu-details">
+				<ul>
+					<li><a asp-area="" asp-controller="Home" asp-action="Personal"><img src="~/images/account.png" style="width:30px" /></a></li>
+					<li><a asp-area="" asp-controller="Home" asp-action="Index"><img src="~/images/login.png" style="width:30px" /></a></li>
+					<li><a asp-area="" asp-controller="Home" asp-action="Reservation"><img src="~/images/steering-wheel.png" style="width:30px" /></a></li>
+				</ul>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+	<script src="jQuery-Seat-Charts/jquery.seat-charts.js"></script>
+    <script>
+        var firstSeatLabel = 1;
+        var parkingStatuses = @Html.Raw(jsonParkingStatuses);
+
+        var noproblemseat = [];
+        var bookingseat = [];
+        var problemseat = [];
+        var avaliableseat = [];
+
+        for (let i = 0; i < parkingStatuses.length; i++) {
+            let idX = parkingStatuses[i].IdX;
+            let reservationStatus = parkingStatuses[i].ReservationStatus;
+
+            if (reservationStatus == 0) {
+                switch (idX) {
+                    case 1:
+                        noproblemseat.push('1_1');
+                        break;
+                    case 2:
+                        noproblemseat.push('2_1');
+                        break;
+                    case 3:
+                        noproblemseat.push('1_3');
+                        break;
+                    case 4:
+                        noproblemseat.push('2_3');
+                        break;
+                    case 5:
+                        noproblemseat.push('3_3');
+                        break;
+                    case 6:
+                        noproblemseat.push('4_3');
+                        break;
+                    case 7:
+                        noproblemseat.push('5_3');
+                        break;
+                    case 8:
+                        noproblemseat.push('6_3');
+                        break;
+                }
+            } else if (reservationStatus == 1) {
+                switch (idX) {
+                    case 1:
+                        avaliableseat.push('1_1');
+                        break;
+                    case 2:
+                        avaliableseat.push('2_1');
+                        break;
+                    case 3:
+                        avaliableseat.push('1_3');
+                        break;
+                    case 4:
+                        avaliableseat.push('2_3');
+                        break;
+                    case 5:
+                        avaliableseat.push('3_3');
+                        break;
+                    case 6:
+                        avaliableseat.push('4_3');
+                        break;
+                    case 7:
+                        avaliableseat.push('5_3');
+                        break;
+                    case 8:
+                        avaliableseat.push('6_3');
+                        break;
+                }
+            } else if (reservationStatus == 2) {
+                switch (idX) {
+                    case 1:
+                        bookingseat.push('1_1');
+                        break;
+                    case 2:
+                        bookingseat.push('2_1');
+                        break;
+                    case 3:
+                        bookingseat.push('1_3');
+                        break;
+                    case 4:
+                        bookingseat.push('2_3');
+                        break;
+                    case 5:
+                        bookingseat.push('3_3');
+                        break;
+                    case 6:
+                        bookingseat.push('4_3');
+                        break;
+                    case 7:
+                        bookingseat.push('5_3');
+                        break;
+                    case 8:
+                        bookingseat.push('6_3');
+                        break;
+                }
+            } else if (reservationStatus == 3) {
+                switch (idX) {
+                    case 1:
+                        problemseat.push('1_1');
+                        break;
+                    case 2:
+                        problemseat.push('2_1');
+                        break;
+                    case 3:
+                        problemseat.push('1_3');
+                        break;
+                    case 4:
+                        problemseat.push('2_3');
+                        break;
+                    case 5:
+                        problemseat.push('3_3');
+                        break;
+                    case 6:
+                        problemseat.push('4_3');
+                        break;
+                    case 7:
+                        problemseat.push('5_3');
+                        break;
+                    case 8:
+                        problemseat.push('6_3');
+                        break;
+                }
+            }
+        }
+
+        $(document).ready(function () {
+            var $cart = $('#selected-seats'),
+                $counter = $('#counter'),
+                $total = $('#total'),
+                selectedSeat = null,
+                sc = $('#seat-map').seatCharts({
+                    map: [
+                        'a_a',
+                        'a_a',
+                        '__a',
+                        '__a',
+                        '__a',
+                        '__a'
+                    ],
+                    seats: {
+                        f: {
+                            price: 100,
+                            classes: 'first-class', //your custom CSS class
+                            category: 'First Class'
+                        }
+                    },
+                    naming: {
+                        top: false,
+                        getLabel: function (character, row, column) {
+                            return firstSeatLabel++;
+                        },
+                    },
+                    legend: {
+                        node: $('#legend'),
+                        items: [
+                            ['n', 'noproblem', '사용 중'],
+                            ['a', 'available', '예약 가능'],
+                            ['b', 'booking', '예약 중'],
+                            ['p', 'unavailable', '문제 있음']
+                        ]
+                    },
+                    click: function () {
+                        if (this.status() == 'available') {
+                            if (selectedSeat == null) {
+                                $('<li>' + this.settings.label + '번 자리</b> <a href="#" class="cancel-cart-item">[cancel]</a></li>')
+                                    .attr('id', 'cart-item-' + this.settings.id)
+                                    .data('seatId', this.settings.id)
+                                    .appendTo($cart);
+
+                                selectedSeat = this.settings.id;
+
+                                $('#selected-seat-number').val(this.settings.label);
+
+                                // 카운터를 업데이트하고 선택된 좌석으로 설정합니다.
+                                $counter.text(1);
+                                return 'selected';
+                            }
+                        } else if (this.status() == 'selected') {
+                            if (selectedSeat == this.settings.id) {
+                                // 선택 해제를 위해 선택된 좌석을 삭제합니다.
+                                $('#cart-item-' + this.settings.id).remove();
+                                selectedSeat = null;
+
+                                // 카운터를 업데이트합니다.
+                                $counter.text(0);
+                                $('#selected-seat-number').val('');
+                                // 선택된 좌석이 없음으로 설정합니다.
+                                return 'available';
+                            }
+                        } else {
+                            // 다른 좌석 상태(booking, unavailable, noproblem)의 경우 아무 작업도 수행하지 않습니다.
+                            return this.style();
+                        }
+                    },
+                });
+
+            // "[cancel]" 링크 클릭 이벤트 핸들러를 추가합니다.
+            $('#selected-seats').on('click', '.cancel-cart-item', function () {
+                // 선택 해제를 위해 선택된 좌석을 삭제합니다.
+                var seatId = $(this).closest('li').data('seatId');
+                $('#cart-item-' + seatId).remove();
+                sc.get([seatId]).status('available');
+                selectedSeat = null;
+                $('#selected-seat-number').val('');
+                // 카운터를 업데이트합니다.
+                $counter.text(0);
+            });
+
+            for (let i = 0; i < noproblemseat.length; i++) {
+                let seat = noproblemseat[i];
+                sc.get([seat]).status('noproblem');
+            }
+
+            // bookingseat 배열의 값을 sc.get().status()에 전달하여 상태를 변경합니다.
+            for (let i = 0; i < bookingseat.length; i++) {
+                let seat = bookingseat[i];
+                sc.get([seat]).status('booking');
+            }
+
+            for (let i = 0; i < problemseat.length; i++) {
+                let seat = problemseat[i];
+                sc.get([seat]).status('unavailable');
+            }
+
+            for (let i = 0; i < avaliableseat.length; i++) {
+                let seat = avaliableseat[i];
+                sc.get([seat]).status('available');
+            }
+        });
+    </script>
+
+</body>
+</html>
