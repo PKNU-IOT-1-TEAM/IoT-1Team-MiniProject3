@@ -100,10 +100,10 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 def index():
     return render_template('index.html')
 
-@app.route('/video_feed')
-def video_feed():
-    return Response(gen(),
-                    mimetype='multipart/x-mixed-replace; boundary=frame')
+# @app.route('/video_feed')
+# def video_feed():
+#     return Response(gen(),
+#                     mimetype='multipart/x-mixed-replace; boundary=frame')
 
 def gen():
     while True:
