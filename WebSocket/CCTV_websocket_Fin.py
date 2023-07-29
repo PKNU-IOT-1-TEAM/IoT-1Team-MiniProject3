@@ -55,13 +55,13 @@ class StreamingHandler(server.BaseHTTPRequestHandler):
             self.send_response(301)
             self.send_header('Location', '/stream.mjpg')
             self.end_headers()
-        elif self.path == '/index.html':
-            content = PAGE.encode('utf-8')
-            self.send_response(200)
-            self.send_header('Content-Type', 'text/html')
-            self.send_header('Content-Length', len(content))
-            self.end_headers()
-            self.wfile.write(content)
+        # elif self.path == '/index.html':
+        #     content = PAGE.encode('utf-8')
+        #     self.send_response(200)
+        #     self.send_header('Content-Type', 'text/html')
+        #     self.send_header('Content-Length', len(content))
+        #     self.end_headers()
+        #     self.wfile.write(content)
         elif self.path == '/stream.mjpg':
             self.send_response(200)
             self.send_header('Age', 0)
@@ -100,18 +100,10 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
 def index():
     return render_template('index.html')
 
-<<<<<<< Updated upstream
 @app.route('/video_feed')
 def video_feed():
     return Response(gen(),
                     mimetype='multipart/x-mixed-replace; boundary=frame')
-=======
-
-# @app.route('/video_feed')
-# def video_feed():
-#     return Response(gen(),
-#                     mimetype='multipart/x-mixed-replace; boundary=frame')
->>>>>>> Stashed changes
 
 def gen():
     while True:
@@ -133,7 +125,7 @@ if __name__ == '__main__':
         server = StreamingServer(address, StreamingHandler)
         socketio.init_app(app)
         socketio.start_background_task(server.serve_forever)
-        app.run(host='0.0.0.0', debug=True)
+        app.run(host='0.0.0.0', debug=False)
     finally:
-        # 서버 실행을 마치면 녹화를 중단
+        # 서버 실행을 마치면 녹화를 중단.
         picamera.stop_recording()
