@@ -41,7 +41,6 @@ PAGE = """
 </html>
 """
 
-
 class StreamingOutput(io.BufferedIOBase):
     def __init__(self):
         self.frame = None
@@ -51,7 +50,6 @@ class StreamingOutput(io.BufferedIOBase):
         with self.condition:
             self.frame = buf
             self.condition.notify_all()
-
 
 class StreamingHandler(server.BaseHTTPRequestHandler):
     def do_GET(self):
@@ -99,11 +97,9 @@ class StreamingServer(socketserver.ThreadingMixIn, server.HTTPServer):
     allow_reuse_address = True
     daemon_threads = True
 
-
 @app.route('/')
 def index():
     return render_template('index.html')
-
 
 @app.route('/video_feed')
 def video_feed():
