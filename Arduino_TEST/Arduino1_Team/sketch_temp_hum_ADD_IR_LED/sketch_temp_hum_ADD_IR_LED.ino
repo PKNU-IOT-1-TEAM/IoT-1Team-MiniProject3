@@ -1,6 +1,6 @@
 #include <ArduinoJson.h>  // json모듈
 #include <DHT.h>    // 온습도 모듈
-#include <pm2008_i2c.h> // 미세먼지 센서 모듈
+#include <pm2008_i2c.h> // 미세먼지 센서 모듈 -> 미세먼지 노란선은 그라운드에 꼽아야함 
 
 int AD1_IR1_out = 6;
 int AD1_LED1_RED = 3; // LED_빨간색 핀
@@ -42,6 +42,7 @@ void loop() {
   float h = dht.readHumidity();   // 습도 
   float t = dht.readTemperature();  // 섭씨 온도
   float f = dht.readTemperature(true);  // 화씨 온도
+  int Parking_Status = 0; // 주차상태
 
   // 온습도 측정 실패할 경우 다시 시도하기 위해 loop 함수 종료
   if (isnan(h) || isnan(t) || isnan(f)) {
@@ -67,6 +68,7 @@ void loop() {
     if(command == '1')
     {
       // 흰색 LED
+      Parking_Status = 1;
       analogWrite(AD1_LED1_RED, 120); 
       analogWrite(AD1_LED1_GREEN,5);
       analogWrite(AD1_LED1_BLUE, 0);
@@ -74,6 +76,7 @@ void loop() {
     else if(command =='2')
     {
       // 주황색
+      Parking_Status = 2;
       analogWrite(AD1_LED1_RED, 30); 
       analogWrite(AD1_LED1_GREEN, 165);
       analogWrite(AD1_LED1_BLUE, 255);
@@ -81,6 +84,7 @@ void loop() {
     else if(command =='3')
     {
       // 녹색
+      Parking_Status = 3;
       analogWrite(AD1_LED1_RED, 255); 
       analogWrite(AD1_LED1_GREEN, 0);
       analogWrite(AD1_LED1_BLUE, 255);
@@ -88,6 +92,7 @@ void loop() {
     else if(command =='4')
     {
       // 빨간색
+      Parking_Status = 4;
       analogWrite(AD1_LED1_RED, 0); 
       analogWrite(AD1_LED1_GREEN, 255);
       analogWrite(AD1_LED1_BLUE, 255);
@@ -100,6 +105,7 @@ void loop() {
   doc["AD1_RCV_Temperature"] = t;     // 온도
   doc["AD1_RCV_Humidity"] = h;        // 습도
   doc["AD1_RCV_Dust"] = pm2008_i2c.number_of_2p5_um;    // 미세먼지
+  doc["AD1_RCV_Parking_Status"] = Parking_Status;
 
   // JSON 데이터를 문자열로 변환하고, 시리얼 통신을 통해 출력
   String jsonStr;

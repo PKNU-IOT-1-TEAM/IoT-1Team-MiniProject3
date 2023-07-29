@@ -1,4 +1,4 @@
-  // NFC header file
+// NFC header file
 #include <SPI.h>    // spi통신을 위한 라이브러리
 #include <MFRC522.h>
 #include <ArduinoJson.h>

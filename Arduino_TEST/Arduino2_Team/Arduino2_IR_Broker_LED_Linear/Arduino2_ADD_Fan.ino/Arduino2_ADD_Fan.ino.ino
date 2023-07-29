@@ -1,13 +1,15 @@
 #include <ArduinoJson.h>
 #include <Servo.h>           // Servo 라이브러리 헥사 선언
 
+// IR 센서가 작동되는 동안 LED가 작동되고 IR센서가 꺼지면 LED가 꺼지게 코드 수정(추가? 변경?) 해야함!!
+
 Servo MyServo;              // 서보모터 선언
 int pos = 190;                 // 모터 위치를 확인하기 위해 변수를 선언
 int Fan_In = 3;           // 퍤 모터
 int CGuard = 6;          // 서보모터 제어를 위해 핀번호 (PWM)
 int CGuard_LED = 7;      // LED 핀 선언(RED)
 int Buzz = 8;             // 부저 핀 선언
-int AD2_RCV_CGuard = 10;  // MQTT에 보낼 Servo 신호
+//int AD2_RCV_CGuard = 10;  // MQTT에 보낼 Servo 신호 -> 필요없어서 생략
 int IR = 11;     // 차량 인식을 위한 IR 센서
 
 DynamicJsonDocument doc(254);   // json값 전달할 객체 생성
@@ -18,7 +20,7 @@ void setup() {
   pinMode(CGuard, OUTPUT);        // 서보 모터 핀 출력으로 설정
   pinMode(Fan_In, OUTPUT);        // 팬 핀 출력 
   pinMode(IR, INPUT);             // IR 센서 핀 입력으로 설정
-  pinMode(AD2_RCV_CGuard, INPUT); // MQTT 서보 모터 핀 입력으로 설정
+  //pinMode(AD2_RCV_CGuard, INPUT); // MQTT 서보 모터 핀 입력으로 설정 -> 필요없어서 생략
   pinMode(Buzz, INPUT);           // 부저 입력 핀 설정
   MyServo.attach(6);              // 모터의 신호선을 6번핀에 연결
   MyServo.write(pos);             // 서보모터 초기 위치로 설정
