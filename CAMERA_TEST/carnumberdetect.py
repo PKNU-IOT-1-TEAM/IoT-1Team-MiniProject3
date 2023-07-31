@@ -5,7 +5,8 @@ import pytesseract
 
 # 이미지 불러오기
 plt.style.use('dark_background')
-img_ori = cv2.imread('1.jpg')
+# 번호판 말고 다른 문자가 사진에 나오면 인식률 떨어짐
+img_ori = cv2.imread('15.jpg')
 
 height, width, channel = img_ori.shape
 
@@ -250,7 +251,7 @@ for i, plate_img in enumerate(plate_imgs):
     # pytesseract.pytesseract.tesseract_cmd = 'C:/DEV/Tools/'
     # chars = pytesseract.image_to_string(img_result, lang='kor', config='--psm 7 --oem 0')
     # OCR 실행
-    chars = pytesseract.image_to_string(img_result, lang='kor', config='--psm 7') # config 안에 더 추가 해야함 
+    chars = pytesseract.image_to_string(img_result, lang='kor', config= '--psm 13') # config 안에 더 추가 해야함 
     
     result_chars = ''
     has_digit = False
