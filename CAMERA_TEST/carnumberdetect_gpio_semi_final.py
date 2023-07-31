@@ -18,7 +18,8 @@ img_path = ""                                               # 이미지 경로 �
 plt.style.use('dark_background')                            # matplotlib 스타일 설정 : 배경을 어둡게 설정하여 이미지를 더 잘 시각화할 수 있도록 함
 # 번호판 말고 다른 문자가 사진에 나오면 인식률 떨어짐
 def car_num_detect(img_path):
-    img_ori = cv2.imread(img_path)                              # img_path에 저장된 이미지를 OpenCV로 불러와서 img_ori변수에 저장
+    img_ori = cv2.imread(img_path)
+    # img_ori = cv2.imread("license_plate_img1.jpg")                              # img_path에 저장된 이미지를 OpenCV로 불러와서 img_ori변수에 저장
 
     height, width, channel = img_ori.shape                      # 불러온 이미지의 높이, 너비, 채널 수를 각 변수에 저장 
 
@@ -50,7 +51,7 @@ def car_num_detect(img_path):
     contours, _ = cv2.findContours(                             # cv2.findContours : 이진화된 이미지에서 윤곽선을 검출하는 함수, 반환값은 검출된 윤곽선들과 계층정보로 이루어진 리스트
         img_blur_thresh,                                        # 가우시안 블러링 된 이미지를 이진화 한 이미지(검출하고자 하는 객체 또는 영역을 흰색으로 표현하고 배경을 검정색으로 표현한 이미지이여야 함)
         mode=cv2.RETR_LIST,                                     # 윤곽선 검출 방법을 지정하는 파라미터, cv2.RETR_LIST : 모든 검출된 윤곽선을 리스트로 반환하는 방식을 의미
-        method=cv2.CHAIN_APPROX_TC89_KCOS                          # 윤곽선 근사 방법을 지정하는 파라미터
+        method=cv2.CHAIN_APPROX_TC89_KCOS                       # 윤곽선 근사 방법을 지정하는 파라미터
         # CHAIN_APPROX_SIMPLE :최소한의 점으로 표현 / CHAIN_APPROX_NONE : 모든 점들이 반환됨 / CHAIN_APPROX_TC89_L1 : Teh-Chin연결 근사 알고리즘 / CHAIN_APPROX_TC89_KCOS : kcos 거리는 윤곽선의 길이와 곡률을 모두 계산(좀 더 정확)
     )
 
@@ -185,7 +186,7 @@ def car_num_detect(img_path):
             cv2.rectangle(temp_result, pt1=(d['x'], d['y']), pt2=(d['x']+d['w'], d['y']+d['h']), color=(255,255,255), thickness=2)      # 매칭된 윤곽선의 위치를 'temp_result'이미지에 흰색 사각형으로 표시
 
     PLATE_WIDTH_PADDING = 1.3   # 번호판의 폭 추출할 때 사용(추출된 번호판 영역의 가로 폭을 'PLATE_WIDTH_PADDING'로 곱하여 최종 번호판의 가로 폭을 계산) => 번호판의 가로폭을 확장시킴(숫자가 커질수록)
-    PLATE_HEIGHT_PADDING = 1.6  # 번호판의 높이 추출할 때 사용(추출된 번호판 영역의 세로 폭을 'PLATE_HEIGHT_PADDING'로 곱하여 최종 번호판의 세로 폭을 계산) => 번호판의 세로 폭을 확장시킴(숫자가 커질수록)
+    PLATE_HEIGHT_PADDING = 1.5  # 번호판의 높이 추출할 때 사용(추출된 번호판 영역의 세로 폭을 'PLATE_HEIGHT_PADDING'로 곱하여 최종 번호판의 세로 폭을 계산) => 번호판의 세로 폭을 확장시킴(숫자가 커질수록)
     MIN_PLATE_RATIO = 3         # 최소 번호판 비율
     MAX_PLATE_RATIO = 10        # 최대 번호판 비율
 
@@ -243,7 +244,7 @@ def car_num_detect(img_path):
         _, plate_img = cv2.threshold(plate_img, thresh=0.0, maxval=255.0, type=cv2.THRESH_BINARY | cv2.THRESH_OTSU) # 이미지 이진화 수행
         
         # 이미지에서 윤곽선 찾음 / cv2.RETR_LIST : 모든 윤곽선 찾음 / cv2.CHAIN_APPROX_TC89_KCOS : 윤곽선 압축하여 저장 
-        contours, _ = cv2.findContours(plate_img, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_TC89_KCOS)
+        contours, _ = cv2.findContours(plate_img, mode=cv2.RETR_LIST, method=cv2.CHAIN_APPROX_TC89_L1)
         
         # 추출된 윤곽선들 중에서 최대/최소 x,y좌표 초기화
         plate_min_x, plate_min_y = plate_img.shape[1], plate_img.shape[0]
@@ -300,7 +301,7 @@ def car_num_detect(img_path):
     chars = plate_chars[longest_idx]    # 최종 선택된 인덱스를 이용해서 'plate_chars'에서 인식된 번호판 문자열 가져옴
 
     # 번호판 결과 저장하는 변수
-    # print(chars)
+    print(chars)
 
     # 인식된 번호판 영역 시각화 해주는 부분(필요없으니 지워도 됨)
     # 원본이미지(img_out) 복사하여 새로운 이미지 변수 생성(원본이미지 영향 x)
@@ -310,18 +311,20 @@ def car_num_detect(img_path):
     # 그려진 이미지를 'jpg'파일로 저장('char'.jpg)
     cv2.imwrite(chars + '.jpg', img_out)
 
+
     return chars
 
 try:
     while True:
         # ir센서 인식되명 사진 촬영
         if GPIO.input(IR_SENSOR) == GPIO.LOW:
+            sleep(1)
             img_path = "license_plate_img.jpg"                          # 저장할 이미지 경로와 파일 이름
             ret, frame = camera.read()                                  # camera.read()를 통해 카메라로부터 이미지를 촬영하고 그 결과를 'ret'와 'frame'에 저장
                                                                         # frame : 읽어온 프레임(이미지)데이터가 저장된 NumPy 배열. 이미지는 OpenCV에서 사용되는 BGR(Blue, Green, Red)형식의 배열로 저장된
             if ret:                                                     # 이미지 촬영이 성공한 경우(ret=True)
                 cv2.imwrite(img_path,frame)                             # 촬영한 이미지를 지정한 경로에 저장
-            sleep(2)
+            sleep(1)
             
             try:
                 print(car_num_detect(img_path))

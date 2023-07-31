@@ -6,7 +6,7 @@ import pytesseract                                          # Tesseract OCR(Opti
 # 이미지 불러오기
 plt.style.use('dark_background')                            # matplotlib 스타일 설정 : 배경을 어둡게 설정하여 이미지를 더 잘 시각화할 수 있도록 함
 # 번호판 말고 다른 문자가 사진에 나오면 인식률 떨어짐
-img_ori = cv2.imread("4.jpg")                              # img_path에 저장된 이미지를 OpenCV로 불러와서 img_ori변수에 저장
+img_ori = cv2.imread("license_plate_img.jpg")                              # img_path에 저장된 이미지를 OpenCV로 불러와서 img_ori변수에 저장
 
 height, width, channel = img_ori.shape                      # 불러온 이미지의 높이, 너비, 채널 수를 각 변수에 저장 
 
