@@ -16,7 +16,7 @@ public partial class AccountParking
 	[DataType(DataType.Password)]
 	public string Password { get; set; } = null!;
 
-	public sbyte Admin { get; set; }
+	public int Admin { get; set; }
 
 	public string? NfcRegistered { get; set; }
 }

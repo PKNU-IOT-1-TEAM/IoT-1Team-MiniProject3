@@ -10,18 +10,28 @@
 	string jsonParkingStatuses = string.Empty;
 	var httpContext = Context.Request.HttpContext;
 	var optionsBuilder = new DbContextOptionsBuilder<Team1IotContext>();
+    int? userId = httpContext.Session.GetInt32("USER_LOGIN_KEY");
+    string? nfc = null;
+
 
 	using (var db = new Team1IotContext(optionsBuilder.Options))
 	{
 		List<ParkingStatus> parkingStatuses = db.ParkingStatuses.ToList();
 
 		jsonParkingStatuses = Newtonsoft.Json.JsonConvert.SerializeObject(parkingStatuses);
+
+        var userRecord = db.AccountParkings.FirstOrDefault(u => u.IdX == userId);
+
+        if (userRecord != null)
+        {
+            nfc = userRecord.NfcRegistered;
+        }
 	}
 }
 
 <html>
 <head>
-	<link rel="stylesheet" type="text/css" href="jQuery-Seat-Charts/jquery.seat-charts.css">
+	<link rel="stylesheet" type="text/css" href="~/css/jquery.seat-charts.css">
 	<style>
 		html, body {
 			position: relative;
@@ -207,9 +217,10 @@
 						</tr>
 					</tbody>
 				</table>
-                <form id="selected-seat-form" asp-action="submit">
-                    <h3 style="text-align : center;"><b>선택된 자리</b>　<button class="custom-btn btn-1" onclick="checkHiddenValue()">예약하기</button></h3>
+                <form id="selected-seat-form" asp-action="Submit">
+                    <h3 style="text-align : center;"><b>선택된 자리</b>　<input type="submit" class="custom-btn btn-1" onclick="checkHiddenValue()" value="예약하기" title="예약하기"/></h3>
                     <input type="hidden" id="selected-seat-number" name="selectedSeatNumber" value="" />
+                    <input type="hidden" id="nfc" name="nfc" value="@nfc" />
                     <p id="selected-seats" style="text-align:center; margin-top:10px;"></p>
                 </form>
 			</div>
@@ -226,7 +237,7 @@
 	</div>
 
 	<script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
-	<script src="jQuery-Seat-Charts/jquery.seat-charts.js"></script>
+	<script src="./js/jquery.seat-charts.js"></script>
     <script>
         var firstSeatLabel = 1;
         var parkingStatuses = @Html.Raw(jsonParkingStatuses);
@@ -388,9 +399,9 @@
                         ]
                     },
                     click: function () {
-                        if (this.status() == 'available') {
+                        if (this.status() == 'available') {                           
                             if (selectedSeat == null) {
-                                $('<li>' + this.settings.label + '번 자리</b> <a href="#" class="cancel-cart-item">[cancel]</a></li>')
+                                $('<li>' + this.settings.label + '번 자리</b></li>')
                                     .attr('id', 'cart-item-' + this.settings.id)
                                     .data('seatId', this.settings.id)
                                     .appendTo($cart);
@@ -403,8 +414,11 @@
                                 $counter.text(1);
                                 return 'selected';
                             }
+                            else {
+                                allcancel();
+                            }
                         } else if (this.status() == 'selected') {
-                            if (selectedSeat == this.settings.id) {
+                            if (selectedSeat == this.settings.id) { // 선택된 자리가 다시 클릭한 자리랑 일치할때
                                 // 선택 해제를 위해 선택된 좌석을 삭제합니다.
                                 $('#cart-item-' + this.settings.id).remove();
                                 selectedSeat = null;
@@ -415,24 +429,16 @@
                                 // 선택된 좌석이 없음으로 설정합니다.
                                 return 'available';
                             }
+                            else { // 
+                                // 선택 해제를 위해 선택된 좌석을 삭제합니다.
+                                allcancel();                                
+                            }
                         } else {
                             // 다른 좌석 상태(booking, unavailable, noproblem)의 경우 아무 작업도 수행하지 않습니다.
                             return this.style();
                         }
                     },
                 });
-
-            // "[cancel]" 링크 클릭 이벤트 핸들러를 추가합니다.
-            $('#selected-seats').on('click', '.cancel-cart-item', function () {
-                // 선택 해제를 위해 선택된 좌석을 삭제합니다.
-                var seatId = $(this).closest('li').data('seatId');
-                $('#cart-item-' + seatId).remove();
-                sc.get([seatId]).status('available');
-                selectedSeat = null;
-                $('#selected-seat-number').val('');
-                // 카운터를 업데이트합니다.
-                $counter.text(0);
-            });
 
             for (let i = 0; i < noproblemseat.length; i++) {
                 let seat = noproblemseat[i];
@@ -455,6 +461,19 @@
                 sc.get([seat]).status('available');
             }
         });
+
+        var allcancel = function() {
+            // 선택 해제를 위해 선택된 좌석을 삭제합니다.
+            var seatId = $(this).closest('li').data('seatId');
+            $('#cart-item-' + seatId).remove();
+            sc.get([seatId]).status('available');
+            selectedSeat = null;
+            $('#selected-seat-number').val('');
+            $counter.text(0);
+        }
+
+        var checking = function() {
+        }
     </script>
 
 </body>

@@ -73,16 +73,20 @@ namespace CarReservationWeb.Controllers
 		}
 
         [HttpPost]
-        public ActionResult Submit(AccountParking account, ParkingStatus status)
-        {	
-			// nfc 값, parking_status 모두 바꾸고 저장
-            if (ModelState.IsValid)
-            {
-                db.ParkingStatuses.Add(status);
-                db.SaveChanges();
-				return View();
+        public ActionResult Submit(string selectedSeatNumber, string nfc)
+        {
+			using (db)
+			{
+				var user = db.ParkingStatuses.FirstOrDefault(u => u.IdX.Equals(int.Parse(selectedSeatNumber)));
+
+				if (user != null)
+				{
+                    user.Nfc = nfc;
+					user.ReservationStatus = "2";
+                    db.SaveChanges();
+                }
             }
-            return View();
+            return RedirectToAction("Reservation", "Home");
         }
 
         public ActionResult Reservation()
