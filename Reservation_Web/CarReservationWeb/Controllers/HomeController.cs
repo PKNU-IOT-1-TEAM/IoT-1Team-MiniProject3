@@ -61,14 +61,15 @@ namespace CarReservationWeb.Controllers
 					if (user != null)
 					{
 						HttpContext.Session.SetInt32("USER_LOGIN_KEY", user.IdX);
-						return RedirectToAction("Reservation", "Home");
+                        return RedirectToAction("Reservation", "Home");
 					}
 				}
 			}
 			else
 			{
 				ModelState.AddModelError("", "Invalid Credentials");
-			}
+            }
+
 			return RedirectToAction("Index");
 		}
 
