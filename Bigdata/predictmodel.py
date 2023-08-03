@@ -6,13 +6,15 @@ from datetime import datetime, date, timedelta
 
 from joblib import load
 
-url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
-
+url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst" #초단기 실황 
+ 
 serviceKey = "wGokgRxD1t3z5G4u7MsWumpoCeiWO8JM6yZ87rX1ELTO9nMSUuMOQjHj70rAzuopgyB1iLdKX0S9WK0RLs88bQ==" # 공공데이터 포털에서 생성된 본인의 서비스 키를 복사 / 붙여넣기
 serviceKeyDecoded = unquote(serviceKey, 'UTF-8') # 공데이터 포털에서 제공하는 서비스키는 이미 인코딩된 상태이므로, 디코딩하여 사용해야 함
 stacking = load('Bigdata\model.joblib')
 
+# 초단기 실황 
 while True:
+  # 현재 날짜와 시간을 가져와서 원하는 형식으로 변환 
   now = datetime.now()
   today = datetime.today().strftime("%Y%m%d")
   y = date.today() - timedelta(days=1)
@@ -36,6 +38,7 @@ while True:
           base_time = str(now.hour) + "30"
       base_date = today
 
+  # API 요청을 위한 쿼리 파라미터 설정 
   queryParams = '?' + urlencode({ quote_plus('serviceKey') : serviceKeyDecoded, quote_plus('base_date') : base_date, quote_plus('pageNo') : 1,
                                       quote_plus('base_time') : base_time, quote_plus('nx') : 98, quote_plus('ny') : 76,
                                       quote_plus('dataType') : 'json', quote_plus('numOfRows') : '60'}) #페이지로 안나누고 한번에 받아오기 위해 numOfRows=60으로 설정해주었다
@@ -45,7 +48,13 @@ while True:
   res = requests.get(url + queryParams, verify=False) # verify=False이거 안 넣으면 에러남ㅜㅜ
   items = res.json().get('response').get('body').get('items') #데이터들 아이템에 저장
 
+#API 전체값 출력 코드(받을 수 있는지 확인)
+#   if res.status_code == 200:
+#       data = res.json()
+#       print(data)
 
+#   else :
+#       print("False Api load" , res.status_code)
 
   data = {
       '기온(°C)': [float(items['item'][3]['obsrValue'])],
