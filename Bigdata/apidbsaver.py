@@ -2,10 +2,15 @@
 import pymysql 
 import requests
 import pandas as pd
+import schedule
+import time
+import urllib3
 
 from joblib import load
 from urllib.parse import unquote, urlencode, quote_plus 
-from datetime import datetime, date, timedelta
+from datetime import datetime, timedelta
+
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 # 현재 시간 함수
 def base_Time():
@@ -31,9 +36,7 @@ def base_Date():
 # API LOAD 해서 저장하는 함수
 def api_load(url, serviceKey):
     base_time = base_Time()
-    #'1130' -> 시간 조금 손봐야함  
     base_date = base_Date()
-    #'20230803' -> 시간 조금 손봐야함 
 
     serviceKeyDecoded = unquote(serviceKey, 'UTF-8')
 
@@ -45,6 +48,28 @@ def api_load(url, serviceKey):
     data = res.json().get('response').get('body').get('items')
 
     return data
+
+# 강물 수위 API 가져와서 필요한 강만 추출하는 함수
+def get_river(river_url, serviceKey):
+    result = []
+
+    serviceKeyDecoded = unquote(serviceKey, 'UTF-8') 
+
+    queryParams = '?' + urlencode({quote_plus('serviceKey') : serviceKeyDecoded, quote_plus('pageNo') : 1,
+                                        quote_plus('resultType') : 'json', quote_plus('numOfRows') : '20'}) #페이지로 안나누고 한번에 받아오기 위해 numOfRows=60으로 설정해주었다
+
+    res = requests.get(river_url + queryParams, verify=False)
+    datas = res.json()['getRvrwtLevelInfo']['body']['items']['item']
+
+    for data in datas:
+        if (data['siteName'] == '연안교' or
+            data['siteName'] == '원동교' or
+            data['siteName'] == '온천천 하류' or
+            data['siteName'] == '중앙여고' or
+            data['siteName'] == '온천장역 북측' ):
+            result.append(data)
+
+    return result
 
 # 실시간 날씨 API를 모델에 예측하는 함수
 def get_predict():
@@ -178,6 +203,28 @@ def InsertPredictDB():
     except Exception as e:
         print(f'{e}')
 
+# 강물 수위 데이터 DB INSERT (5m)
+def InsertRiverDB():
+    result = get_river(river_url, serviceKey)
+    for data in result:
+        try:
+            conn = connect_to_DB()
+            cur = conn.cursor()
+
+            total_qry = f"""INSERT INTO riverflow
+                            (siteName, waterLevel, dayLevelMax, obsrTime, alertLevel1, alertLevel1Nm, alertLevel2, alertLevel2Nm, 
+                            alertLevel3, alertLevel3Nm, alertLevel4, alertLevel4Nm, sttus, sttusNm) VALUES
+                                ('{data['siteName']}','{data['waterLevel']}', '{data['dayLevelMax']}', '{data['obsrTime']}','{data['alertLevel1']}', '{data['alertLevel1Nm']}',
+                                '{data['alertLevel2']}', '{data['alertLevel2Nm']}','{data['alertLevel3']}', '{data['alertLevel3Nm']}','{data['alertLevel4']}', '{data['alertLevel4Nm']}',
+                                '{data['sttus']}', '{data['sttusNm']}')"""
+            
+            cur.execute(total_qry)
+
+            conn.commit()
+            conn.close()
+        except Exception as e:
+            print(f'{e}')
+
 # 날씨 예보 값이 DB에 있는지 없는지 점검 (있으면 UPDATE, 없으면 INSERT)
 def weather_data_insert(weather_data):
     for day in weather_data:
@@ -204,9 +251,24 @@ def weather_data_insert(weather_data):
             else :
                 InsertDB(input_data, tmp_day, tmp_time, bday, btime)
 
+def job():
+    conn = connect_to_DB()
+    cur = conn.cursor()
+
+    weather_data = get_forecast()
+    weather_data_insert(weather_data)
+    InsertPredictDB()
+    InsertRiverDB()
+    
+    conn.commit()
+    conn.close()
+
+    print(time.strftime('%Y.%m.%d - %H:%M:%S'), '실행 중입니다.')
+
 # 사용하는 변수 선언 (__main__ 문 안에 넣어도 무방)
 live_url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst"
 short_predict= "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtFcst" # 초단기 예보 (저장용)
+river_url = "https://apis.data.go.kr/6260000/BusanRvrwtLevelInfoService/getRvrwtLevelInfo"
 
 serviceKey = "wGokgRxD1t3z5G4u7MsWumpoCeiWO8JM6yZ87rX1ELTO9nMSUuMOQjHj70rAzuopgyB1iLdKX0S9WK0RLs88bQ==" # 공공데이터 포털에서 생성된 본인의 서비스 키를 복사 / 붙여넣기
 serviceKeyDecoded = unquote(serviceKey, 'UTF-8') # 공공데이터 포털에서 제공하는 서비스키는 이미 인코딩된 상태이므로, 디코딩하여 사용해야 함 -> 초단기 실황(예보도 동일)
@@ -214,16 +276,14 @@ serviceKeyDecoded = unquote(serviceKey, 'UTF-8') # 공공데이터 포털에서 
 stacking = load('model.joblib')
 
 # 이외 해야 하는 것 
-# (1) 강물 수위 API 삽입하는 코드 작성
+# (1) 강물 수위 API 삽입하는 코드 작성 - complete-
 # (2) 각기 저장하고 싶다면 멀티 스레드 사용
 #     그러고 싶지 않으면 업데이트 되는 30분 마다 실행되는 time.sleep() 사용하거나 schedule 사용
-if __name__ == "__main__":
-    conn = connect_to_DB()
-    cur = conn.cursor()
 
-    weather_data = get_forecast()
-    weather_data_insert(weather_data)
-    InsertPredictDB()
-    
-    conn.commit()
-    conn.close()
+# 초단기실황 - 정시단위 (매시각 40분 이후 호출)
+# 초단기예보 - 30분 단위 (매시각 45분 이후 호출)
+# 강물 수위 - 5분 단위
+if __name__ == "__main__":
+    while True:
+        job()
+        time.sleep(1500)
