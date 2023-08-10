@@ -1,0 +1,51 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - car_reservation_web</title>
+    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/car_reservation_web.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="https://code.jquery.com/qunit/qunit-1.14.0.css">
+    <link rel="stylesheet" href="~/css/jquery.seat-charts.css">
+
+    <style>
+        body {
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+    <header>
+    </header>
+    <div class="container">
+        <main role="main" class="pb-3">
+            @RenderBody()
+        </main>
+    </div>
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+
+    <script src="https://code.jquery.com/qunit/qunit-1.14.0.js"></script>
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+
+    <script src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <script src="~/js/jquery.seat-charts.js"></script>
+
+    <script src="~/js/jquery.seat-charts.min.js"></script>
+
+    <link href='https://fonts.googleapis.com/css?family=Lato:400,700' rel='stylesheet' type='text/css'>
+    <link rel="stylesheet" type="text/css" href="jQuery-Seat-Charts/jquery.seat-charts.css">
+    <link rel="stylesheet" type="text/css" href="~/css/jquery.seat-charts.css">
+
+    <script type="text/javascript" src="~/js/general.js"></script>
+    <script type="text/javascript" src="~/js/methods.js"></script>
+    <script type="text/javascript" src="~/js/interactions.js"></script>
+    <script type="text/javascript" src="~/js/multiple.js"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>
