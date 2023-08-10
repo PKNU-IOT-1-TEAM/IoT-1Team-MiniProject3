@@ -34,7 +34,7 @@ void loop() {
     String jsonStr; 
     serializeJson(doc, jsonStr);
     Serial.println(jsonStr);
-    delay(10000);
+    delay(1000);
     return;
   }
   // NFC 카드 UID를 읽어오지 못한 경우, json 객체를 시리얼 통신으로 전송하고 10초 대기
@@ -43,7 +43,7 @@ void loop() {
     String jsonStr; 
     serializeJson(doc, jsonStr);
     Serial.println(jsonStr);
-    delay(10000);
+    delay(1000);
     return;
   }
   cardNumber = "";      // 카드번호 초기화
@@ -61,5 +61,5 @@ void loop() {
    
   rfid.PICC_HaltA();    // NFC 카드 통신 종료
   rfid.PCD_StopCrypto1();   // NFC 카드 암호화 종료
-  delay(10000);   // 10초 대기
+  delay(1000);   // 10초 대기
 }

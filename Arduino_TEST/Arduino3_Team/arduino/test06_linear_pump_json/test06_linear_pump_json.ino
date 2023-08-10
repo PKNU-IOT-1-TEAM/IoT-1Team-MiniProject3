@@ -7,7 +7,6 @@ int waterPump2 =10; // 워터펌프 역회적
 int TRIG = 9; // 초음파 센서 트리거
 int ECHO = 8; // 초음파 센서 에코
 int dir = 2;  // 릴레이 시그널 핀
-
 // 동작 상태 (리니어 모터)
 enum MotorState
 {
@@ -73,20 +72,23 @@ void loop()
     // 초음파 센서로 거리 측정
   if(motorState == FORWARD || motorState == BACKWARD)
   {
-   
+    // 목표 거리에 도달하였는지 확인하여 동작 완료 상태로 변경
     int distance = int(measureDistance());
     doc["AD3_RCV_WGuard_Wave"] = distance;
     String jsonStr;
     serializeJson(doc,jsonStr);
     Serial.println(jsonStr);
 
-    // 목표 거리에 도달하였는지 확인하여 동작 완료 상태로 변경
-    if(distance >= 20 || distance <= 10)
+    if(motorState == FORWARD && distance <= 4)
     {
       motorState = COMPLETED;
       stopMotor();
     }
-
+    else if(motorState == BACKWARD && distance >= 10)
+    {
+      motorState = COMPLETED;
+      stopMotor();
+    }
   }
 }
 
