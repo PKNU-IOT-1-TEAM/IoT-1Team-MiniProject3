@@ -62,11 +62,7 @@ def get_river(river_url, serviceKey):
     datas = res.json()['getRvrwtLevelInfo']['body']['items']['item']
 
     for data in datas:
-        if (data['siteName'] == '연안교' or
-            data['siteName'] == '원동교' or
-            data['siteName'] == '온천천 하류' or
-            data['siteName'] == '중앙여고' or
-            data['siteName'] == '온천장역 북측' ):
+        if (data['siteName'] == '연안교'):
             result.append(data)
 
     return result
