@@ -39,6 +39,8 @@ class Publisher(Thread):
         if cnt_result == 0:
             print("MQTT Publisher 연결 성공")
             self.publish_data_auto()    # 자동 publish 함수
+            while True:
+                self.client.loop()  # 브로커와 연결 유지
 
     def publish_data_auto(self):
         # 큐에서 모든 센서 값을 가져와 딕셔너리에 저장
@@ -93,6 +95,8 @@ class Subscriber(Thread):
     def run(self):
         self.client.connect(self.broker, self.port)   # MQTT브로커 연결
         self.client.loop_forever()  # MQTT브로커와 통신을 유지하며 메시지를 ccccccc주고 받을 수 있도록 루프를 돌며 대기하는 기능
+        while True:
+                self.client.loop()  # 브로커와 연결 유지
 
 # Serial arduino Thread
 class Arduino(Thread):
