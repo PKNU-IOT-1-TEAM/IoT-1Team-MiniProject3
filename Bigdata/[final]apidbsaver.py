@@ -65,8 +65,13 @@ def get_river(river_url, serviceKey):
         if (data['siteName'] == '연안교' or
             data['siteName'] == '원동교' or
             data['siteName'] == '온천천 하류'):
+<<<<<<< Updated upstream:Bigdata/[final]apidbsaver.py
+            result.append(data)
+=======
+>>>>>>> Stashed changes:Bigdata/apidbsaver.py
             result.append(data)
             result.append(data)
+
 
     return result
 
@@ -85,7 +90,10 @@ def get_predict():
   new_data = pd.DataFrame(data)
   probabilities = stacking.predict_proba(new_data.drop(columns = ['basedate', 'basetime']))
 
-  return round(probabilities[0][1] * 100, 2), data
+#  return round(probabilities[0][1] * 100, 2), data
+#  return 32.5, data
+#  return 65.8, data
+#  return 88.3, data
 
 # 날씨 예보 API를 가져와서 dictionary로 변환하는 함수
 def get_forecast():
@@ -272,7 +280,7 @@ river_url = "https://apis.data.go.kr/6260000/BusanRvrwtLevelInfoService/getRvrwt
 serviceKey = "wGokgRxD1t3z5G4u7MsWumpoCeiWO8JM6yZ87rX1ELTO9nMSUuMOQjHj70rAzuopgyB1iLdKX0S9WK0RLs88bQ==" # 공공데이터 포털에서 생성된 본인의 서비스 키를 복사 / 붙여넣기
 serviceKeyDecoded = unquote(serviceKey, 'UTF-8') # 공공데이터 포털에서 제공하는 서비스키는 이미 인코딩된 상태이므로, 디코딩하여 사용해야 함 -> 초단기 실황(예보도 동일)
 
-stacking = load('model.joblib')
+stacking = load('stacking_model (2).joblib')
 
 # 이외 해야 하는 것 
 # (1) 강물 수위 API 삽입하는 코드 작성 - complete-

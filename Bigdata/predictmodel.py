@@ -10,7 +10,7 @@ url = "https://apis.data.go.kr/1360000/VilageFcstInfoService_2.0/getUltraSrtNcst
  
 serviceKey = "wGokgRxD1t3z5G4u7MsWumpoCeiWO8JM6yZ87rX1ELTO9nMSUuMOQjHj70rAzuopgyB1iLdKX0S9WK0RLs88bQ==" # 공공데이터 포털에서 생성된 본인의 서비스 키를 복사 / 붙여넣기
 serviceKeyDecoded = unquote(serviceKey, 'UTF-8') # 공데이터 포털에서 제공하는 서비스키는 이미 인코딩된 상태이므로, 디코딩하여 사용해야 함
-stacking = load('Bigdata\model.joblib')
+stacking = load('model.joblib')
 
 # 초단기 실황 
 while True:
@@ -60,7 +60,7 @@ while True:
       '기온(°C)': [float(items['item'][3]['obsrValue'])],
       '풍향(deg)': [float(items['item'][5]['obsrValue'])],
       '풍속(m/s)': [float(items['item'][7]['obsrValue'])],
-      '강수량(mm)': [float(items['item'][2]['obsrValue'])]
+      '강수량(mm)': 0.5
   }
 
   new_data = pd.DataFrame(data)
