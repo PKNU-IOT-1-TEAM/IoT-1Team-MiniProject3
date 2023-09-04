@@ -2,7 +2,6 @@
 import pymysql 
 import requests
 import pandas as pd
-import schedule
 import time
 import urllib3
 

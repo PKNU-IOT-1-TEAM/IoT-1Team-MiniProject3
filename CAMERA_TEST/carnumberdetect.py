@@ -6,9 +6,11 @@ import pytesseract
 # 이미지 불러오기
 plt.style.use('dark_background')
 # 번호판 말고 다른 문자가 사진에 나오면 인식률 떨어짐
-img_ori = cv2.imread('15.jpg')
+img_ori = cv2.imread('8.jpg')
 
 height, width, channel = img_ori.shape
+
+
 
 # 전처리
 gray = cv2.cvtColor(img_ori, cv2.COLOR_BGR2GRAY)
@@ -36,7 +38,8 @@ img_thresh = cv2.adaptiveThreshold(
 contours, _ = cv2.findContours(
     img_blur_thresh,
     mode=cv2.RETR_LIST,
-    method=cv2.CHAIN_APPROX_SIMPLE
+    # CHAIN_APPROX_TC89_L1 / CHAIN_APPROX_TC89_KCOS 인식 잘 됨
+    method=cv2.CHAIN_APPROX_TC89_KCOS
 )
 
 temp_result = np.zeros((height, width, channel), dtype=np.uint8)
