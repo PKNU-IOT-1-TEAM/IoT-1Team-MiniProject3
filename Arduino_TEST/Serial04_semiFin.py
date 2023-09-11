@@ -14,7 +14,8 @@ AD1_LED = 0
 AD2_CGuard = 0
 AD3_WGuard_Wave = 0
 
-original_result = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None, 'AD1_RCV_Dust':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None }
+original_result = {'AD1_RCV_IR_Sensor':None, 'AD1_RCV_Temperature':None, 'AD1_RCV_Humidity':None,
+                   'AD1_RCV_Dust':None,'AD2_RCV_CGuard':None ,'AD3_RCV_WGuard_Wave':None, 'AD4_RCV_NFC': None, 'AD4_RCV_WL_CNNT':None }
 is_send_mqtt = False
 
 topic1='TEAM_ONE/parking/Control_data/'
@@ -173,12 +174,12 @@ def AD4_Thread():
                 data = json.loads(json_str)
                 AD4_Nfc = data["AD4_RCV_NFC"]
                 AD4_WL_Cnnt = data["AD4_RCV_WL_CNNT"]
-                AD4_WL_NCnnt = data["AD4_RCV_WL_NCNNT"]
+                #AD4_WL_NCnnt = data["AD4_RCV_WL_NCNNT"]
 
                 if is_send_mqtt == False :
                     original_result['AD4_RCV_NFC'] = AD4_Nfc
                     original_result['AD4_RCV_WL_CNNT'] = AD4_WL_Cnnt
-                    original_result['AD4_RCV_WL_NCNNT'] = AD4_WL_NCnnt
+                    #original_result['AD4_RCV_WL_NCNNT'] = AD4_WL_NCnnt
 
                 json_data = json.dumps(original_result)
                 client.publish(topic='TEAM_ONE/parking/data/', payload=json_data)

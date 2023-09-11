@@ -99,7 +99,7 @@ void loop() {
     }
   }
 
-  int state = digitalRead(AD1_IR1_out);   // IR센서의 값을 state 변수에 저장 ( LOW(0) / HIGH(1) )
+  int state = digitalRead(AD1_IR1_out);   // IR센서의 값을 state 변수에 저장 
 
   doc["AD1_RCV_IR_Sensor"] = state;   // IR 센서
   doc["AD1_RCV_Temperature"] = t;     // 온도

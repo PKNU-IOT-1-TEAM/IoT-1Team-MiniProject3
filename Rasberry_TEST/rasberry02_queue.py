@@ -12,8 +12,8 @@ AD3_PORT='/dev/ttyAMA2'
 AD4_PORT='/dev/ttyAMA3'
 
 # MQTT 통신 변수
-BROKER = '210.119.12.83'
-PORT=1883
+BROKER =  '210.119.12.112' # '210.119.12.83'
+PORT= 11000 # 1883
 
 # MQTT publisher(보내기) Thread
 class Publisher(Thread):
@@ -31,19 +31,13 @@ class Publisher(Thread):
 
         # Publish 클라인언트 생성
         self.client = mqtt.Client(client_id=self.clientId)
-        # 호출함수 등록
-        self.client.on_connect = self.onConnect
-
-    def onConnect(self, mqttc, obj, flags, rc):
-        if rc == 0:
-            print("MQTT Publisher 연결 성공")
-        else:
-            print("MQTT Publisher 연결 실패, result code:", rc)
 
     def run(self):
         # mqtt_broker 연결
-        self.client.connect(self.broker, self.port)
-        self.publish_data_auto()    # 자동 publish 함수
+        cnt_result = self.client.connect(self.broker, self.port)
+        if cnt_result == 0:
+            print("MQTT Publisher 연결 성공")
+            self.publish_data_auto()    # 자동 publish 함수
 
     def publish_data_auto(self):
         # 큐에서 모든 센서 값을 가져와 딕셔너리에 저장
@@ -83,10 +77,10 @@ class Subscriber(Thread):
 
     def onConnect(self, mqttc, obj, flags, rc): # 연결 성공시 호출되는 콜백함수
         if rc == 0:
-            print("MQTT Publisher 연결 성공")
+            print("MQTT Subscriber 연결 성공")
             self.client.subscribe(topic=self.topic)     # 구독
         else:
-            print("MQTT Publisher 연결 실패, result code:", rc)
+            print("MQTT Subscriber 연결 실패, result code:", rc)
 
 
     def onMessage(self, mqttc, obj, msg):   # 특정 토픽에서 메세지를 받았을때 호출되는 콜백함수
@@ -97,7 +91,7 @@ class Subscriber(Thread):
 
     def run(self):
         self.client.connect(self.broker, self.port)   # MQTT브로커 연결
-        self.client.loop_forever()  # MQTT브로커와 통신을 유지하며 메시지를 주고 받을 수 있도록 루프를 돌며 대기하는 기능
+        self.client.loop_forever()  # MQTT브로커와 통신을 유지하며 메시지를 ccccccc주고 받을 수 있도록 루프를 돌며 대기하는 기능
 
 # Serial arduino Thread
 class Arduino(Thread):
